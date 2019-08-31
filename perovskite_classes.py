@@ -1,9 +1,13 @@
+import os, sys
 import numpy as np
 from torch.utils import data
 import torch.nn as nn
 import torch
 from ignite.engine.engine import Engine, State, Events
 from ignite.utils import convert_tensor
+import gzip, pickle
+import pymatgen as mg
+import pymatgen.core.periodic_table as peri
 
 
 def get_mean_stndev(data):
@@ -15,8 +19,8 @@ def get_mean_stndev(data):
 
 def getRandomSets(X):  # shuffles the data and returns a training and a test set # needs 8 or more samples
        np.random.shuffle(X)
-       Xtrain = X[0:20000]
-       Xtest = X[20000:len(X), :]
+       Xtrain = X[0:50000]
+       Xtest = X[50000:len(X), :]
        # print("Trainset: ", Xtrain[0][:])
        # print("Validationset:", Xtest[0][:])
        return Xtrain, Xtest
@@ -35,9 +39,12 @@ def prepare_batch_conv(batch, device=None, non_blocking=False):
     y = convert_tensor(batch["ehull"], device=device, non_blocking=non_blocking)
     return x, y
 
+
 class flatten(nn.Module):
     def forward(self, x):
+        # print("fallten shape", x.shape)
         return x.view(x.size()[0], -1)
+
 
 class PerovskiteDataset(data.Dataset):
     def __init__(self, array,  transform=None):
@@ -51,6 +58,7 @@ class PerovskiteDataset(data.Dataset):
         features = self.data[idx, 1:]
         ehull = self.data[idx, 0]
         return {"ehull": ehull, "features": features}
+
 
 def create_supervised_trainer(model, optimizer, loss_fn, std=1,
                               device=None, non_blocking=False,
@@ -89,12 +97,13 @@ def create_supervised_trainer(model, optimizer, loss_fn, std=1,
         loss = loss_fn(y_pred, y)
         loss.backward()
         optimizer.step()
-        loss = loss*std
+        loss = loss*std  # normalization
         return output_transform(x, y, y_pred, loss)
 
     return Engine(_update)
 
-def create_supervised_evaluator(model, metrics={},std=1,
+
+def create_supervised_evaluator(model, metrics={}, std=1,
                                 device=None, non_blocking=False,
                                 prepare_batch=prepare_batch,
                                 output_transform=lambda x, y, y_pred: (y_pred, y,)):
@@ -127,7 +136,7 @@ def create_supervised_evaluator(model, metrics={},std=1,
         model.eval()
         with torch.no_grad():
             x, y = prepare_batch(batch, device=device, non_blocking=non_blocking)
-            y_pred = model(x).view(-1)*std
+            y_pred = model(x).view(-1)*std  # normalization
             return output_transform(x, y*std, y_pred)
 
     engine = Engine(_inference)
@@ -136,3 +145,104 @@ def create_supervised_evaluator(model, metrics={},std=1,
         metric.attach(engine, name)
 
     return engine
+
+
+def generateData(file):
+    elementdict = generateElementdict()
+    # Variable for Elements
+    featperelem = (len(elementdict[1]) - 1)  # Elementname still in list
+    datavariables = (1 + 3 * featperelem)  # Ehull + feattotal
+    feattotal = datavariables - 1
+    newdata = rawdataprocessing(elementdict, featperelem, datavariables, feattotal, file)
+
+    return newdata, elementdict, featperelem, datavariables, feattotal
+
+
+def generateElementdict():
+    # Dictionary with Elements and their properties
+    # Delete preprocessed data when changing featperEle
+    elementdict = {}
+    for i in range(1, 100):
+        commonoxidationstate = peri.Element.from_Z(i).common_oxidation_states
+        orbitals = peri.Element.from_Z(i).full_electronic_structure
+        sandp_count = 0
+        dandf_count = 0
+        ionizationenergy = 0
+        valence = 0
+
+        if len(commonoxidationstate) == 0:
+            commonoxidationstate = 0
+        else:
+            commonoxidationstate = peri.Element.from_Z(i).common_oxidation_states[0]
+
+        for j in range(len(orbitals)):
+            for k in range(len(orbitals[j])):
+                if orbitals[j][k] == "s" or orbitals[j][k] == "p":
+                    sandp_count += orbitals[j][2]  # count in third position
+                if orbitals[j][k] == "d" or orbitals[j][k] == "f":
+                    dandf_count += orbitals[j][2]
+
+        if i == 1:
+            ionizationenergy = 13.6
+        else:
+            ionizationenergy = ((i - 1) ^ 2) * 13.6
+
+        """
+        if i == 4 or i == 12 or i == 20:
+            valence = 2
+            print("alkaine earth set to 2 valence e-")
+        else: 
+            valence = peri.Element.from_Z(i).valence
+            print("Element: ", i, "Valence: ", valence, type(valence))
+        """  # transition metals not working
+
+        elementdict[i] = [peri.Element.from_Z(i),  # name
+                          mg.Element(peri.Element.from_Z(i)).group,  # group
+                          peri.Element(peri.Element.from_Z(i)).row,  # row
+                          peri.Element.from_Z(i).X,  # Pauling electronegativity (none equals zero)
+                          peri.Element.from_Z(i).number,  # atomic number
+                          commonoxidationstate,  # common oxidation state if non set to zero
+                          peri.Element.from_Z(i).average_ionic_radius,  # average ionic radius
+                          mg.Element(peri.Element.from_Z(i)).atomic_mass,  # avarage mass
+                          sandp_count,  # count of e- in s and p orbitals
+                          dandf_count,  # couunt of e- in d and f orbitals
+                          ionizationenergy]  # ionizationenergy in eV
+        # peri.Element.from_Z(i).valence]  # number of valence electrons
+    print("Element and feat.:", elementdict)
+    return elementdict
+
+
+def rawdataprocessing(elementdict, featperelem, datavariables, feattotal, file):
+    if os.path.isfile(file):
+        print('Loaded preprocessed data from file')  # Ehull, group1, raw1, elecneg1, group2, raw2, elecneg2, group3, raw3, elecneg3
+        newdata = np.load(open(file, 'rb'))
+        print("real values: ", newdata[0, :])
+        return newdata
+    else:
+        # Read and prepare Data
+        dataraw = gzip.open('data.pickle.gz')
+        data = pickle.load(dataraw, encoding='latin1')
+        dataraw.close()
+        print("Datensatzlaenge: ", len(data), "Anzahl der Features: ", datavariables)
+        newdata = np.zeros((len(data), datavariables))  # Features(Energie+ 3*Elementeigenschaften)
+        # Generate prepared Data
+        count = 0
+        for i in range(len(data)):
+            newdata[i, 0] = data[i, 0]
+            print("Ehull", newdata[i, 0])
+            for j in range(1, 3 + 1):  # elementcount
+                for k in range(1, featperelem + 1):
+                    count += 1
+                    print("Count", count, "| i j k ", i, j, k)
+                    print("data: ", data[i, j])
+                    print("featcount:", k + ((j - 1) * featperelem))
+                    elemstr = data[i, j].decode('UTF-8')  # convert b'Elem' --> Elem
+                    print(elementdict[mg.Element(elemstr).number])
+                    print("k, feat.", k, elementdict[mg.Element(elemstr).number][k])
+                    print("-----------")
+                    newdata[i, (k + ((j - 1) * featperelem))] = elementdict[mg.Element(elemstr).number][k]
+            print(newdata[i, :])
+        np.save(open(file, 'wb'), newdata)
+        # dataraw = gzip.open('dataperpared.pickle.gz', 'wb')
+        # pickle.dump(x)
+        return newdata
