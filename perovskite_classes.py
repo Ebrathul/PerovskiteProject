@@ -149,12 +149,15 @@ def create_supervised_evaluator(model, metrics={}, std=1,
 
 def generateData(file):
     elementdict = generateElementdict()
-    # Variable for Elements
-    featperelem = (len(elementdict[1]) - 1)  # Elementname still in list
-    datavariables = (1 + 3 * featperelem)  # Ehull + feattotal
-    feattotal = datavariables - 1
-    newdata = rawdataprocessing(elementdict, featperelem, datavariables, feattotal, file)
-
+    if os.path.isfile(file):
+        newdata, featperelem, datavariables, feattotal = readdata(file)
+        return newdata, elementdict,featperelem, datavariables, feattotal
+    else:
+        # Variable for Elements
+        featperelem = (len(elementdict[1]) - 1)  # Elementname still in list
+        datavariables = (1 + 3 * featperelem)  # Ehull + feattotal
+        feattotal = datavariables - 1
+        newdata = rawdataprocessing(elementdict, featperelem, datavariables, feattotal, file)
     return newdata, elementdict, featperelem, datavariables, feattotal
 
 
@@ -206,43 +209,49 @@ def generateElementdict():
                           mg.Element(peri.Element.from_Z(i)).atomic_mass,  # avarage mass
                           sandp_count,  # count of e- in s and p orbitals
                           dandf_count,  # couunt of e- in d and f orbitals
-                          ionizationenergy]  # ionizationenergy in eV
+                          ionizationenergy,  # ionizationenergy in eV
+                          ]
         # peri.Element.from_Z(i).valence]  # number of valence electrons
     print("Element and feat.:", elementdict)
     return elementdict
 
 
+def readdata(file):
+    print('Loaded preprocessed data from file')  # Ehull, group1, raw1, elecneg1, group2, raw2, elecneg2, group3, raw3, elecneg3
+    newdata = np.load(open(file, 'rb'))
+    print("real values: ", newdata[0, :])
+    # Variable for Elements
+    featperelem = ((len(newdata[0, :])-1)/3)  # Elementname still in list
+    datavariables = (1 + 3 * featperelem)  # Ehull + feattotal
+    feattotal = datavariables - 1
+    return newdata, featperelem, datavariables, feattotal
+
+
 def rawdataprocessing(elementdict, featperelem, datavariables, feattotal, file):
-    if os.path.isfile(file):
-        print('Loaded preprocessed data from file')  # Ehull, group1, raw1, elecneg1, group2, raw2, elecneg2, group3, raw3, elecneg3
-        newdata = np.load(open(file, 'rb'))
-        print("real values: ", newdata[0, :])
-        return newdata
-    else:
-        # Read and prepare Data
-        dataraw = gzip.open('data.pickle.gz')
-        data = pickle.load(dataraw, encoding='latin1')
-        dataraw.close()
-        print("Datensatzlaenge: ", len(data), "Anzahl der Features: ", datavariables)
-        newdata = np.zeros((len(data), datavariables))  # Features(Energie+ 3*Elementeigenschaften)
-        # Generate prepared Data
-        count = 0
-        for i in range(len(data)):
-            newdata[i, 0] = data[i, 0]
-            print("Ehull", newdata[i, 0])
-            for j in range(1, 3 + 1):  # elementcount
-                for k in range(1, featperelem + 1):
-                    count += 1
-                    print("Count", count, "| i j k ", i, j, k)
-                    print("data: ", data[i, j])
-                    print("featcount:", k + ((j - 1) * featperelem))
-                    elemstr = data[i, j].decode('UTF-8')  # convert b'Elem' --> Elem
-                    print(elementdict[mg.Element(elemstr).number])
-                    print("k, feat.", k, elementdict[mg.Element(elemstr).number][k])
-                    print("-----------")
-                    newdata[i, (k + ((j - 1) * featperelem))] = elementdict[mg.Element(elemstr).number][k]
-            print(newdata[i, :])
-        np.save(open(file, 'wb'), newdata)
-        # dataraw = gzip.open('dataperpared.pickle.gz', 'wb')
-        # pickle.dump(x)
-        return newdata
+    # Read and prepare Data
+    dataraw = gzip.open('data.pickle.gz')
+    data = pickle.load(dataraw, encoding='latin1')
+    dataraw.close()
+    print("Datensatzlaenge: ", len(data), "Anzahl der Features: ", datavariables)
+    newdata = np.zeros((len(data), datavariables))  # Features(Energie+ 3*Elementeigenschaften)
+    # Generate prepared Data
+    count = 0
+    for i in range(len(data)):
+        newdata[i, 0] = data[i, 0]
+        print("Ehull", newdata[i, 0])
+        for j in range(1, 3 + 1):  # elementcount
+            for k in range(1, featperelem + 1):
+                count += 1
+                print("Count", count, "| i j k ", i, j, k)
+                print("data: ", data[i, j])
+                print("featcount:", k + ((j - 1) * featperelem))
+                elemstr = data[i, j].decode('UTF-8')  # convert b'Elem' --> Elem
+                print(elementdict[mg.Element(elemstr).number])
+                print("k, feat.", k, elementdict[mg.Element(elemstr).number][k])
+                print("-----------")
+                newdata[i, (k + ((j - 1) * featperelem))] = elementdict[mg.Element(elemstr).number][k]
+        print(newdata[i, :])
+    np.save(open(file, 'wb'), newdata)
+    # dataraw = gzip.open('dataperpared.pickle.gz', 'wb')
+    # pickle.dump(x)
+    return newdata

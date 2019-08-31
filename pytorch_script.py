@@ -37,11 +37,11 @@ else:
 
 
 
-newdata = pickle.load(open('DATA11.pickle', 'rb'), encoding='latin1')  # Jonathan
-featperelem, datavariables, feattotal = 11, 34, 33
+# newdata = pickle.load(open('DATA11.pickle', 'rb'), encoding='latin1')  # Jonathan
+# featperelem, datavariables, feattotal = 11, 34, 33
 
-# file = 'preprocessed_data_longlist.npy'
-# newdata, elementdict, featperelem, datavariables, feattotal = generateData(file)  # insert filename
+file = 'preprocessed_data.npy'
+newdata, elementdict, featperelem, datavariables, feattotal = generateData(file)  # insert filename
 
 
 print(newdata.shape)
