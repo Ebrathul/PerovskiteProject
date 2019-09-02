@@ -31,6 +31,7 @@ if if_gpu:
        torch.set_default_tensor_type(torch.cuda.DoubleTensor if torch.cuda.is_available()
                                                             else torch.DoubleTensor)
        device="cuda:0"
+       print("Graphics Power!")
 else:
        torch.set_default_tensor_type(torch.DoubleTensor)
        device=None
@@ -40,7 +41,7 @@ else:
 # newdata = pickle.load(open('DATA11.pickle', 'rb'), encoding='latin1')  # Jonathan
 # featperelem, datavariables, feattotal = 11, 34, 33
 
-file = 'preprocessed_data.npy'
+file = 'full_len.npy'
 newdata, elementdict, featperelem, datavariables, feattotal = generateData(file)  # insert filename
 
 
@@ -85,35 +86,41 @@ H3 = 7
 # ) # lr:0.1
 
 netz = nn.Sequential(
-
     nn.Conv1d(1, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),  # in_channels, out_channels, kernel_size
-    nn.LeakyReLU(),
+    nn.ELU(),
+
+    torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    nn.Conv1d(20, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),  # in_channels, out_channels, kernel_size
+    nn.ELU(),
+
     nn.MaxPool1d(3),
+
+    torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    nn.Conv1d(20, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),  # in_channels, out_channels, kernel_size
+    nn.ELU(),
+
     torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
     nn.Conv1d(20, 25, 5, stride=1, padding=2, dilation=2, groups=1, bias=True),
-    nn.LeakyReLU(),
+    nn.ELU(),
+
     torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
     nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
-    nn.LeakyReLU(),
-    nn.Dropout(0.1),
-    # testarea
+    nn.ELU(),
+
+    nn.Dropout(0.01),
+
+
+    torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
+    nn.ELU(),
+
     torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
     nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
-    nn.LeakyReLU(),
-    # print("1"),
-    nn.Dropout(0.05),
-    torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
-    nn.LeakyReLU(),
-    # print("2"),
-    # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    # nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=4, groups=1, bias=True),
-    # print("3"),
-    # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    # nn.Conv1d(25, 25, 3, stride=2, padding=2, dilation=2, groups=1, bias=True),
+    nn.ELU(),
+
 
     nn.AvgPool1d(3),
-    nn.LeakyReLU(),
+    nn.ELU(),
     flatten(),
     nn.Dropout(0.01),
     nn.Linear(75, H2),
