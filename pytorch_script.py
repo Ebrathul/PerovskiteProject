@@ -16,7 +16,9 @@ from ignite.metrics import Loss, MeanAbsoluteError
 import ignite.metrics
 import ignite
 import ignite.contrib.handlers
+from torch.utils.tensorboard import SummaryWriter
 import tensorboardX
+from torchsummary import summary
 import timeit
 import torch
 from perovskite_classes import get_mean_stndev, getRandomSets,  PerovskiteDataset, create_supervised_trainer, create_supervised_evaluator, flatten
@@ -41,7 +43,9 @@ else:
 # newdata = pickle.load(open('DATA11.pickle', 'rb'), encoding='latin1')  # Jonathan
 # featperelem, datavariables, feattotal = 11, 34, 33
 
-file = 'full_len.npy'
+# disable features in classes to gen new data
+file = 'groupraw.npy'
+# file = 'full_len.npy'
 newdata, elementdict, featperelem, datavariables, feattotal = generateData(file)  # insert filename
 
 
@@ -86,49 +90,81 @@ H3 = 7
 # ) # lr:0.1
 
 netz = nn.Sequential(
-    nn.Conv1d(1, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),  # in_channels, out_channels, kernel_size
-    nn.ELU(),
+    nn.Conv1d(1, 15, 4, stride=1, padding=1, dilation=1, groups=1, bias=True),  # in_channels, out_channels, kernel_size
+    nn.LeakyReLU(),
 
-    torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    nn.Conv1d(20, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),  # in_channels, out_channels, kernel_size
-    nn.ELU(),
+    torch.nn.BatchNorm1d(15, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    nn.Conv1d(15, 15, 4, stride=1, padding=1, dilation=1, groups=1, bias=True),
+    nn.LeakyReLU(),
 
+    # nn.Dropout(0.1),
+
+    # torch.nn.BatchNorm1d(10, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    # nn.Conv1d(10, 10, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
+    # nn.ELU(),
+    # # #
+    # torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    # nn.Conv1d(20, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
+    # nn.ELU(),
+
+    # nn.Dropout(0.5),
     nn.MaxPool1d(3),
 
-    torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    nn.Conv1d(20, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),  # in_channels, out_channels, kernel_size
-    nn.ELU(),
+    # torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    # nn.Conv1d(1, 25, 5, stride=1, padding=2, dilation=1, groups=1, bias=True),
+    # nn.ELU(),
 
-    torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    nn.Conv1d(20, 25, 5, stride=1, padding=2, dilation=2, groups=1, bias=True),
-    nn.ELU(),
+    # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    # nn.Conv1d(25, 25, 5, stride=1, padding=2, dilation=1, groups=1, bias=True),
+    # nn.ELU(),
+    #
+    # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    # nn.Conv1d(25, 25, 5, stride=1, padding=2, dilation=1, groups=1, bias=True),
+    # nn.ELU(),
+    #
+    # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    # nn.Conv1d(25, 25, 5, stride=1, padding=2, dilation=1, groups=1, bias=True),
+    # nn.ELU(),
 
-    torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
-    nn.ELU(),
+    # nn.Dropout(0.1),
 
-    nn.Dropout(0.01),
+    # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    # nn.Conv1d(25, 25, 5, stride=1, padding=2, dilation=2, groups=1, bias=True),
+    # nn.ELU(),
+
+    # nn.MaxPool1d(3),
+
+    # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    # nn.Conv1d(1, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
+    # nn.ELU(),
+
+    # nn.Dropout(0.1),
 
 
-    torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
-    nn.ELU(),
+    # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    # nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
+    # nn.ELU(),
+    #
+    # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    # nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
+    # nn.ELU(),
 
-    torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
-    nn.ELU(),
 
-
-    nn.AvgPool1d(3),
-    nn.ELU(),
+    # nn.MaxPool1d(3),
+    # nn.ELU(),
     flatten(),
-    nn.Dropout(0.01),
-    nn.Linear(75, H2),
-    nn.ELU(),
-    nn.Linear(H2, H3),
+    # nn.Dropout(0.01),
+
+    # nn.Linear(30, H2),
+    # nn.ELU(),
+    nn.Linear(135, H3),
     nn.Tanh(),
     nn.Linear(H3, D_out)
 )
+
+modelform = str(netz)
+print("Type:", type(modelform))
+# summary(netz, (1, train_batchsize, int(feattotal)))  # channel, H ,W
 
 
 lossMAE = nn.L1Loss()  # MAE  # to ignite
@@ -149,19 +185,20 @@ pbar.attach(trainer, output_transform=lambda x: {'MAE': x})
 
 # TensorboardX generate new file
 log = 'runs'
-_=0
-while (os.access(log+"/run_"+str(_), os.F_OK)==True):
-       _+=1
-os.mkdir(log+"/run_"+str(_))
-writer = tensorboardX.SummaryWriter(log_dir=log+"/run_"+str(_))
+logcount = 0
+while (os.access(log+"/run_"+str(logcount), os.F_OK)==True):
+       logcount += 1
+os.mkdir(log+"/run_"+str(logcount))
+writer = SummaryWriter(log_dir=log+"/run_"+str(logcount))  # , comment=modelform)
+print("Run: ", logcount)
+print("Modelform:", modelform)
 
-# writer.add_text()
 
 # # tensorboardlogger
 # ignite.contrib.handlers.tensorboard_logger.TensorboardLogger(log_dir=log+"/run_"+str(_))
 evaluate_every = 10
 
-start= timeit.default_timer()
+start = timeit.default_timer()
 @trainer.on(Events.ITERATION_COMPLETED)
 def log_training_loss(trainer):
     iteration = trainer.state.iteration
@@ -172,6 +209,9 @@ def log_training_loss(trainer):
 def log_time(trainer):
     elapsed = round(timeit.default_timer() - start, 2)
     writer.add_scalar('time_vs_epoch', elapsed, trainer.state.epoch)
+    if trainer.state.epoch == 100:
+        writer.add_text(str(logcount), "Netzstruktur: " + modelform)
+
 
 
 @trainer.on(Events.EPOCH_COMPLETED)
