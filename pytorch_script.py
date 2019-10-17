@@ -17,11 +17,13 @@ import ignite.metrics
 import ignite
 import ignite.contrib.handlers
 from torch.utils.tensorboard import SummaryWriter
+# tensorboard --logdir=/nfs/data-020/tabusso/PycharmProjects/PerovskiteProject
 import tensorboardX
 from torchsummary import summary
 import timeit
 import torch
-from perovskite_classes import get_mean_stndev, getRandomSets,  PerovskiteDataset, create_supervised_trainer, create_supervised_evaluator, flatten
+from perovskite_classes import get_mean_stndev, getRandomSets,  PerovskiteDataset, create_supervised_trainer, create_supervised_evaluator
+from perovskite_classes import flatten  # , wrappad
 from perovskite_classes import prepare_batch_conv as prepare_batch  # _conv
 from perovskite_classes import generateData
 from ignite.engine.engine import Engine, State, Events
@@ -89,13 +91,22 @@ H3 = 7
 #     nn.Linear(H3, D_out),
 # ) # lr:0.1
 
+
+def wrappad(x, n):
+    length=x.shape[2]
+    return torch.cat([x[:,:,length-n:length],  x, x[:,:,0:n]], 2)
+
+
 netz = nn.Sequential(
-    nn.Conv1d(1, 15, 4, stride=1, padding=1, dilation=1, groups=1, bias=True),  # in_channels, out_channels, kernel_size
+    wrappad(nn.Module, 1),
+    nn.Conv1d(1, 15, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),  # in_channels, out_channels, kernel_size
     nn.LeakyReLU(),
 
     torch.nn.BatchNorm1d(15, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    nn.Conv1d(15, 15, 4, stride=1, padding=1, dilation=1, groups=1, bias=True),
+    nn.Conv1d(15, 15, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
     nn.LeakyReLU(),
+
+
 
     # nn.Dropout(0.1),
 
@@ -108,7 +119,7 @@ netz = nn.Sequential(
     # nn.ELU(),
 
     # nn.Dropout(0.5),
-    nn.MaxPool1d(3),
+    # nn.MaxPool1d(3),
 
     # torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
     # nn.Conv1d(1, 25, 5, stride=1, padding=2, dilation=1, groups=1, bias=True),
@@ -157,7 +168,7 @@ netz = nn.Sequential(
 
     # nn.Linear(30, H2),
     # nn.ELU(),
-    nn.Linear(135, H3),
+    nn.Linear(90, H3),
     nn.Tanh(),
     nn.Linear(H3, D_out)
 )

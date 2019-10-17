@@ -45,6 +45,12 @@ class flatten(nn.Module):
         # print("fallten shape", x.shape)
         return x.view(x.size()[0], -1)
 
+"""
+class wrappad(nn.Module):
+    def forward(self, x, n):
+        length=x.shape[2]
+        return torch.cat([x[:,:,length-n:length],  x, x[:,:,0:n]], 2)
+"""
 
 class PerovskiteDataset(data.Dataset):
     def __init__(self, array,  transform=None):
