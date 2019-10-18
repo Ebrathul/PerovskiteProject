@@ -45,12 +45,13 @@ class flatten(nn.Module):
         # print("fallten shape", x.shape)
         return x.view(x.size()[0], -1)
 
-"""
+
 class wrappad(nn.Module):
-    def forward(self, x, n):
-        length=x.shape[2]
-        return torch.cat([x[:,:,length-n:length],  x, x[:,:,0:n]], 2)
-"""
+    def forward(self, x):  # , n):
+        n = 1
+        length = x.shape[2]
+        return torch.cat([x[:, :, length-n:length],  x, x[:, :, 0:n]], 2)
+
 
 class PerovskiteDataset(data.Dataset):
     def __init__(self, array,  transform=None):
@@ -207,15 +208,15 @@ def generateElementdict():
 
         elementdict[i] = [peri.Element.from_Z(i),  # name
                           mg.Element(peri.Element.from_Z(i)).group,  # group
-                          peri.Element(peri.Element.from_Z(i)).row,  # row
-                          peri.Element.from_Z(i).X,  # Pauling electronegativity (none equals zero)
-                          peri.Element.from_Z(i).number,  # atomic number
-                          commonoxidationstate,  # common oxidation state if non set to zero
-                          peri.Element.from_Z(i).average_ionic_radius,  # average ionic radius
-                          mg.Element(peri.Element.from_Z(i)).atomic_mass,  # avarage mass
-                          sandp_count,  # count of e- in s and p orbitals
-                          dandf_count,  # couunt of e- in d and f orbitals
-                          ionizationenergy,  # ionizationenergy in eV
+                          peri.Element(peri.Element.from_Z(i)).row  # row
+                        #   peri.Element.from_Z(i).X,  # Pauling electronegativity (none equals zero)
+                        #   peri.Element.from_Z(i).number,  # atomic number
+                        #   commonoxidationstate,  # common oxidation state if non set to zero
+                        #   peri.Element.from_Z(i).average_ionic_radius,  # average ionic radius
+                        #   mg.Element(peri.Element.from_Z(i)).atomic_mass,  # avarage mass
+                        #   sandp_count,  # count of e- in s and p orbitals
+                        #   dandf_count,  # couunt of e- in d and f orbitals
+                        #   ionizationenergy,  # ionizationenergy in eV
                           ]
         # peri.Element.from_Z(i).valence]  # number of valence electrons
     print("Element and feat.:", elementdict)
