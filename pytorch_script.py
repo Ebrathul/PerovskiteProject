@@ -92,74 +92,76 @@ H3 = 7
 
 netz = nn.Sequential(
     wrappad(),
-    nn.Conv1d(1, 15, 4, stride=1, padding=1, dilation=1, groups=1, bias=True),  # in_channels, out_channels, kernel_size
-    nn.LeakyReLU(),
 
-    torch.nn.BatchNorm1d(15, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    nn.Conv1d(15, 15, 4, stride=1, padding=1, dilation=1, groups=1, bias=True),
-    nn.LeakyReLU(),
 
-    # nn.Dropout(0.1),
-
-    # torch.nn.BatchNorm1d(10, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    # nn.Conv1d(10, 10, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
-    # nn.ELU(),
-    # # #
-    # torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    # nn.Conv1d(20, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
-    # nn.ELU(),
-
-    # nn.Dropout(0.5),
-    nn.MaxPool1d(3),
-
-    # torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    # nn.Conv1d(1, 25, 5, stride=1, padding=2, dilation=1, groups=1, bias=True),
-    # nn.ELU(),
-
-    # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    # nn.Conv1d(25, 25, 5, stride=1, padding=2, dilation=1, groups=1, bias=True),
+    # nn.Conv1d(1, 25, 2, stride=1, padding=1, dilation=1, groups=1, bias=True),
     # nn.ELU(),
     #
     # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    # nn.Conv1d(25, 25, 5, stride=1, padding=2, dilation=1, groups=1, bias=True),
+    # nn.Conv1d(25, 25, 2, stride=1, padding=1, dilation=1, groups=1, bias=True),
     # nn.ELU(),
     #
     # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    # nn.Conv1d(25, 25, 5, stride=1, padding=2, dilation=1, groups=1, bias=True),
+    # nn.Conv1d(25, 25, 2, stride=1, padding=1, dilation=1, groups=1, bias=True),
     # nn.ELU(),
 
     # nn.Dropout(0.1),
+    # nn.AvgPool1d(2),
 
-    # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    # nn.Conv1d(25, 25, 5, stride=1, padding=2, dilation=2, groups=1, bias=True),
-    # nn.ELU(),
+    # torch.nn.BatchNorm1d(1, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    nn.Conv1d(1, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),  # in_channels, out_channels, kernel_size
+    nn.ELU(),
 
+    torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    nn.Conv1d(20, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
+    # in_channels, out_channels, kernel_size
+    nn.ELU(),
+
+    nn.Dropout(0.1),
     # nn.MaxPool1d(3),
 
+    torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    nn.Conv1d(20, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
+    # in_channels, out_channels, kernel_size
+    nn.ELU(),
+
+    torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    nn.Conv1d(20, 25, 5, stride=1, padding=2, dilation=2, groups=1, bias=True),
+    nn.ELU(),
+
+    torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
+    nn.Dropout(0.1),
+    # testarea
+    nn.ELU(),
+
+    nn.Dropout(0.01),
+
+    torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
+    nn.ELU(),
+    # print("1"),
+    nn.Dropout(0.05),
+    nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
+    nn.ELU(),
+
+    torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
+    # print("2"),
     # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    # nn.Conv1d(1, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
-    # nn.ELU(),
-
-    # nn.Dropout(0.1),
-
-
+    # nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=4, groups=1, bias=True),
+    # print("3"),
     # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    # nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
-    # nn.ELU(),
-    #
-    # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    # nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
-    # nn.ELU(),
+    # nn.Conv1d(25, 25, 3, stride=2, padding=2, dilation=2, groups=1, bias=True),
+    nn.ELU(),
 
-
-    # nn.MaxPool1d(3),
-    # nn.ELU(),
+    # nn.AvgPool1d(3),
+    nn.ELU(),
     flatten(),
-    # nn.Dropout(0.01),
-
-    # nn.Linear(30, H2),
-    # nn.ELU(),
-    nn.Linear(30, H3),
+    nn.Dropout(0.01),
+    nn.Linear(200, H2),
+    nn.ELU(),
+    nn.Linear(H2, H3),
     nn.Tanh(),
     nn.Linear(H3, D_out)
 )
@@ -205,6 +207,7 @@ start = timeit.default_timer()
 def log_training_loss(trainer):
     iteration = trainer.state.iteration
     writer.add_scalar('loss_vs_iteration', trainer.state.output, iteration)
+    writer.close()
 
 
 @trainer.on(ignite.engine.Events.EPOCH_STARTED)
@@ -213,6 +216,7 @@ def log_time(trainer):
     writer.add_scalar('time_vs_epoch', elapsed, trainer.state.epoch)
     if trainer.state.epoch == 100:
         writer.add_text(str(logcount), "Netzstruktur: " + modelform)
+        writer.close()
 
 
 
@@ -228,6 +232,7 @@ def log_training_results(trainer):
         metrics = evaluator.state.metrics
         print("Validation: ", metrics)
         writer.add_scalar('MAEvsEpoch_validation', metrics["MAE"], trainer.state.epoch)
+        writer.close()
 
 trainer.run(train_loader, max_epochs=1000)
 
