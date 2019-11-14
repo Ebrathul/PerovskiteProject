@@ -22,7 +22,7 @@ from torchsummary import summary
 import timeit
 import torch
 from perovskite_classes import get_mean_stndev, getRandomSets,  PerovskiteDataset, create_supervised_trainer, create_supervised_evaluator
-from perovskite_classes import flatten, wrappad
+from perovskite_classes import flatten, wrapped
 from perovskite_classes import prepare_batch_conv as prepare_batch  # _conv
 from perovskite_classes import generateData
 from ignite.engine.engine import Engine, State, Events
@@ -63,8 +63,8 @@ val_data = (val_data-mean)/stnddev
 train_set, val_set = PerovskiteDataset(train_data), PerovskiteDataset(val_data)
 
 # Variable batch and set loader
-train_batchsize = 5000
-val_batchsize = 10000
+train_batchsize = 500
+val_batchsize = 2000
 train_loader, val_loader = DataLoader(train_set, batch_size=train_batchsize, shuffle=True, drop_last=False), \
                            DataLoader(val_set, batch_size=val_batchsize, drop_last=True)
 
@@ -91,8 +91,7 @@ H3 = 7
 # ) # lr:0.1
 
 netz = nn.Sequential(
-    wrappad(),
-
+    wrapped(),
 
     # nn.Conv1d(1, 25, 2, stride=1, padding=1, dilation=1, groups=1, bias=True),
     # nn.ELU(),
@@ -120,46 +119,40 @@ netz = nn.Sequential(
     nn.Dropout(0.1),
     # nn.MaxPool1d(3),
 
-    torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    nn.Conv1d(20, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
-    # in_channels, out_channels, kernel_size
-    nn.ELU(),
-
-    torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    nn.Conv1d(20, 25, 5, stride=1, padding=2, dilation=2, groups=1, bias=True),
-    nn.ELU(),
-
-    torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
-    nn.Dropout(0.1),
-    # testarea
-    nn.ELU(),
-
-    nn.Dropout(0.01),
-
-    torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
-    nn.ELU(),
-    # print("1"),
-    nn.Dropout(0.05),
-    nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
-    nn.ELU(),
-
-    torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
-    # print("2"),
+    # torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    # nn.Conv1d(20, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
+    # # in_channels, out_channels, kernel_size
+    # nn.ELU(),
+    #
+    # torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    # nn.Conv1d(20, 25, 5, stride=1, padding=2, dilation=2, groups=1, bias=True),
+    # nn.ELU(),
+    #
     # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    # nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=4, groups=1, bias=True),
-    # print("3"),
+    # nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
+    # nn.Dropout(0.1),
+    # # testarea
+    # nn.ELU(),
+    #
+    # nn.Dropout(0.01),
+    #
     # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    # nn.Conv1d(25, 25, 3, stride=2, padding=2, dilation=2, groups=1, bias=True),
-    nn.ELU(),
+    # nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
+    # nn.ELU(),
+    # # print("1"),
+    # nn.Dropout(0.05),
+    # nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
+    # nn.ELU(),
+    #
+    # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+    # nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
+    # nn.ELU(),
 
     # nn.AvgPool1d(3),
     nn.ELU(),
     flatten(),
     nn.Dropout(0.01),
-    nn.Linear(200, H2),
+    nn.Linear(160, H2),
     nn.ELU(),
     nn.Linear(H2, H3),
     nn.Tanh(),
@@ -171,11 +164,36 @@ print("Type:", type(modelform))
 # summary(netz, (1, train_batchsize, int(feattotal)))  # channel, H ,W
 
 
+# params = list(fc1.parameters()) + list(fc2.parameters())
+params = list()
+model = []
+for i in range(10):
+    model.append(netz)
+    # nn.init.uniform_(model[i]) # for random weights
+    params = model[i].parameters()
+print("len of model: ", len(model))
+
+
 lossMAE = nn.L1Loss()  # MAE  # to ignite
 lossMSE = nn.MSELoss()
-optimizer = torch.optim.Adam(netz.parameters(), lr=0.01)
+# torch.optim.SGD(params, lr=0.01)
+optimizer = torch.optim.Adam(params, lr=0.01)
 
-trainer = create_supervised_trainer(netz, optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
+
+
+
+# list of trainers?
+trainer = create_supervised_trainer(model[:], optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
+# trainer2 = create_supervised_trainer(netz, optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
+# trainer3 = create_supervised_trainer(netz, optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
+# trainer4 = create_supervised_trainer(netz, optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
+# trainer5 = create_supervised_trainer(netz, optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
+# trainer6 = create_supervised_trainer(netz, optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
+# trainer7 = create_supervised_trainer(netz, optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
+# trainer8 = create_supervised_trainer(netz, optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
+# trainer9 = create_supervised_trainer(netz, optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
+# trainer10 = create_supervised_trainer(netz, optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
+
 evaluator = create_supervised_evaluator(netz, std=stnddev[0], prepare_batch=prepare_batch,
                                         metrics={'MAE': Loss(lossMAE),
                                                   'MSE': Loss(lossMSE),
@@ -183,18 +201,19 @@ evaluator = create_supervised_evaluator(netz, std=stnddev[0], prepare_batch=prep
                                                  # 'NLL': Loss(lossNLL)
                                                  })  # output_transform=output_retransform_znormalize) expects (x, pred, y)
 
+
 pbar = ignite.contrib.handlers.ProgressBar(persist=False)
 pbar.attach(trainer, output_transform=lambda x: {'MAE': x})
 
 
 # TensorboardX generate new file
-log = 'runs'
+log = 'active'
 logcount = 0
 while (os.access(log+"/run_"+str(logcount), os.F_OK)==True):
        logcount += 1
 os.mkdir(log+"/run_"+str(logcount))
-writer = SummaryWriter(log_dir=log+"/run_"+str(logcount))  # , comment=modelform)
-print("Run: ", logcount)
+writer = SummaryWriter(log_dir=log+"/run_"+str(logcount))   # +"NN_1" ? declaration for multiple NN
+print("Run: ", logcount)   # , comment=modelform)
 print("Modelform:", modelform)
 
 
@@ -202,21 +221,25 @@ print("Modelform:", modelform)
 # ignite.contrib.handlers.tensorboard_logger.TensorboardLogger(log_dir=log+"/run_"+str(_))
 evaluate_every = 10
 
+epoch = 0
+max_epoch = 500
+
 start = timeit.default_timer()
 @trainer.on(Events.ITERATION_COMPLETED)
 def log_training_loss(trainer):
     iteration = trainer.state.iteration
     writer.add_scalar('loss_vs_iteration', trainer.state.output, iteration)
-    writer.close()
+    # writer.close()  # generating mass of files
 
 
 @trainer.on(ignite.engine.Events.EPOCH_STARTED)
 def log_time(trainer):
     elapsed = round(timeit.default_timer() - start, 2)
     writer.add_scalar('time_vs_epoch', elapsed, trainer.state.epoch)
+    epoch = trainer.state.epoch
     if trainer.state.epoch == 100:
         writer.add_text(str(logcount), "Netzstruktur: " + modelform)
-        writer.close()
+        # writer.close()    # generating mass of files
 
 
 
@@ -232,11 +255,30 @@ def log_training_results(trainer):
         metrics = evaluator.state.metrics
         print("Validation: ", metrics)
         writer.add_scalar('MAEvsEpoch_validation', metrics["MAE"], trainer.state.epoch)
-        writer.close()
 
-trainer.run(train_loader, max_epochs=1000)
+        print("trainloader")
+        print(train_loader.dataset.__len__())
+        print(train_loader.dataset)
+        print(train_loader.dataset.__getitem__(0))
+        print("train_set")
+        print(train_set.__len__())
+        print(train_set.__getitem__(0))
+        # for i in range(train_set.__len__()):
+        #     print(train_set.__getitem__(i))
+        print(train_set.data.shape)
+        print(train_set.data)
+        metrics
+
+        if(trainer.state.epoch%max_epoch==0):
+            writer.close()  # generating mass of files
+
+
+i = 0
+while epoch%max_epoch == 0 and i < 10:
+    i += 1
+    trainer.run(train_loader, max_epochs=max_epoch)
+
 
 torch.save(netz, 'testlr.pt')
-
 
 

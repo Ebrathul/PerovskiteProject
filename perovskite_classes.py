@@ -19,8 +19,8 @@ def get_mean_stndev(data):
 
 def getRandomSets(X):  # shuffles the data and returns a training and a test set # needs 8 or more samples
        np.random.shuffle(X)
-       Xtrain = X[0:50000]
-       Xtest = X[50000:len(X), :]
+       Xtrain = X[0:5000]
+       Xtest = X[5000:len(X), :]
        # print("Trainset: ", Xtrain[0][:])
        # print("Validationset:", Xtest[0][:])
        return Xtrain, Xtest
@@ -42,11 +42,11 @@ def prepare_batch_conv(batch, device=None, non_blocking=False):
 
 class flatten(nn.Module):
     def forward(self, x):
-        # print("fallten shape", x.shape)
+        # print("flatten shape", x.shape)
         return x.view(x.size()[0], -1)
 
 
-class wrappad(nn.Module):
+class wrapped(nn.Module):
     def forward(self, x):  # , n):
         n = 1
         length = x.shape[2]
@@ -97,16 +97,17 @@ def create_supervised_trainer(model, optimizer, loss_fn, std=1,
         model.to(device)
 
     def _update(engine, batch):
-        model.train()
-        optimizer.zero_grad()
-        x, y = prepare_batch(batch, device=device, non_blocking=non_blocking)
-        y_pred = model(x).view(-1)
-        loss = loss_fn(y_pred, y)
-        loss.backward()
-        optimizer.step()
-        loss = loss*std  # normalization
-        return output_transform(x, y, y_pred, loss)
-
+        print("trainer model: ", model)
+        for i in len(model):
+            model[i].train()
+            optimizer.zero_grad()
+            x, y = prepare_batch(batch, device=device, non_blocking=non_blocking)
+            y_pred = model(x).view(-1)
+            loss = loss_fn(y_pred, y)
+            loss.backward()
+            optimizer.step()
+            loss = loss*std  # normalization
+            return output_transform(x, y, y_pred, loss)
     return Engine(_update)
 
 
@@ -150,7 +151,6 @@ def create_supervised_evaluator(model, metrics={}, std=1,
 
     for name, metric in metrics.items():
         metric.attach(engine, name)
-
     return engine
 
 
