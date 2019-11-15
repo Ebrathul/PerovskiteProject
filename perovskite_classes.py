@@ -66,7 +66,8 @@ class PerovskiteDataset(data.Dataset):
         ehull = self.data[idx, 0]
         return {"ehull": ehull, "features": features}
 
-
+uncertantylist = []
+epoch = 0
 def create_supervised_trainer(model, optimizer, loss_fn, std=1,
                               device=None, non_blocking=False,
                               prepare_batch=prepare_batch,
@@ -97,16 +98,18 @@ def create_supervised_trainer(model, optimizer, loss_fn, std=1,
         model.to(device)
 
     def _update(engine, batch):
-        print("trainer model: ", model)
-        for i in len(model):
+        # print("trainer model: ", model)
+        for i in range(len(model)):
             model[i].train()
             optimizer.zero_grad()
             x, y = prepare_batch(batch, device=device, non_blocking=non_blocking)
-            y_pred = model(x).view(-1)
+            y_pred = model[i](x).view(-1)
             loss = loss_fn(y_pred, y)
             loss.backward()
             optimizer.step()
             loss = loss*std  # normalization
+            print("loss", loss)
+            # uncertantylist[epoch].append(loss[0])
             return output_transform(x, y, y_pred, loss)
     return Engine(_update)
 
@@ -141,12 +144,17 @@ def create_supervised_evaluator(model, metrics={}, std=1,
         model.to(device)
 
     def _inference(engine, batch):
-        model.eval()
-        with torch.no_grad():
-            x, y = prepare_batch(batch, device=device, non_blocking=non_blocking)
-            y_pred = model(x).view(-1)*std  # normalization
-            return output_transform(x, y*std, y_pred)
-
+        # losslist = np.zeros(len(model))
+        for i in range(len(model)):
+            model[i].eval()
+            with torch.no_grad():
+                x, y = prepare_batch(batch, device=device, non_blocking=non_blocking)
+                y_pred = model[i](x).view(-1)*std  # normalization
+                print("y_pred: ", y_pred)
+                # losslist[i] = y_pred  # only one element tensors can be converted to Python scalars
+                return output_transform(x, y*std, y_pred)
+        # stdnetpred = np.std(losslist)
+        # print(stdnetpred)
     engine = Engine(_inference)
 
     for name, metric in metrics.items():

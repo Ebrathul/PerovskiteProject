@@ -167,7 +167,8 @@ print("Type:", type(modelform))
 # params = list(fc1.parameters()) + list(fc2.parameters())
 params = list()
 model = []
-for i in range(10):
+nncount = 10
+for i in range(nncount):
     model.append(netz)
     # nn.init.uniform_(model[i]) # for random weights
     params = model[i].parameters()
@@ -184,17 +185,8 @@ optimizer = torch.optim.Adam(params, lr=0.01)
 
 # list of trainers?
 trainer = create_supervised_trainer(model[:], optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
-# trainer2 = create_supervised_trainer(netz, optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
-# trainer3 = create_supervised_trainer(netz, optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
-# trainer4 = create_supervised_trainer(netz, optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
-# trainer5 = create_supervised_trainer(netz, optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
-# trainer6 = create_supervised_trainer(netz, optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
-# trainer7 = create_supervised_trainer(netz, optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
-# trainer8 = create_supervised_trainer(netz, optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
-# trainer9 = create_supervised_trainer(netz, optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
-# trainer10 = create_supervised_trainer(netz, optimizer, lossMAE, std=stnddev[0], prepare_batch=prepare_batch)
 
-evaluator = create_supervised_evaluator(netz, std=stnddev[0], prepare_batch=prepare_batch,
+evaluator = create_supervised_evaluator(model[:], std=stnddev[0], prepare_batch=prepare_batch,
                                         metrics={'MAE': Loss(lossMAE),
                                                   'MSE': Loss(lossMSE),
                                                  # 'accuracy': Accuracy(),  ???
@@ -257,7 +249,7 @@ def log_training_results(trainer):
         writer.add_scalar('MAEvsEpoch_validation', metrics["MAE"], trainer.state.epoch)
 
         print("trainloader")
-        print(train_loader.dataset.__len__())
+        print("len:", train_loader.dataset.__len__())
         print(train_loader.dataset)
         print(train_loader.dataset.__getitem__(0))
         print("train_set")
