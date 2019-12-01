@@ -13,14 +13,14 @@ import pymatgen.core.periodic_table as peri
 def get_mean_stndev(data):
     mean = np.mean(data, axis=0)  # axis 0 is top to bottom, 1 would be sideways
     stnddev = np.std(data, axis=0)  # , ddof=1)
-    print("Mean: ", mean, "\nStnd dev: ", stnddev)
+    # print("Mean: ", mean, "\nStnd dev: ", stnddev)
     return mean, stnddev
 
 
-def getRandomSets(X):  # shuffles the data and returns a training and a test set # needs 8 or more samples
+def getRandomSets(X, trainsetsize):  # shuffles the data and returns a training and a test set # needs 8 or more samples
        np.random.shuffle(X)
-       Xtrain = X[0:5000]
-       Xtest = X[5000:len(X), :]
+       Xtrain = X[0:trainsetsize]
+       Xtest = X[trainsetsize:len(X), :]
        # print("Trainset: ", Xtrain[0][:])
        # print("Validationset:", Xtest[0][:])
        return Xtrain, Xtest
@@ -258,8 +258,8 @@ def create_supervised_evaluator(model, metrics={}, std=1,
     return engine
 
 
-def create_dataset(data):
-    train_data, val_data = getRandomSets(data)  # change to 5000
+def create_dataset(data, trainsetsize):
+    train_data, val_data = getRandomSets(data, trainsetsize)  # change to 5000
     print("created random datasets")
     np.save(open('traindata.npy', 'wb'), train_data, allow_pickle=True)
     np.save(open('valdata.npy', 'wb'), val_data, allow_pickle=True)
