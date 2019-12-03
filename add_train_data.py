@@ -137,7 +137,8 @@ def add_train_data(trainsetaddition):
 
     # normalization
     train_data = (train_data - mean) / stnddev
-    val_data_x = (val_data[:, 1::] - mean[1::]) / stnddev[1::]
+    val_data_x = (val_data - mean) / stnddev
+    # val_data_x = (val_data[:, 1::] - mean[1::]) / stnddev[1::]
     print("val data shape and ex:", val_data_x.shape, val_data_x[0])
 
 

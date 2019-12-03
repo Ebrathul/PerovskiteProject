@@ -30,13 +30,13 @@ from ignite.engine.engine import Engine, State, Events
 from ignite.utils import convert_tensor
 from torchvision import transforms
 
-def train(NN_index, trainsetsize):
+def train(NN_index, trainsetsize, log, max_epoch):
     if_gpu = True
     if if_gpu:
         torch.set_default_tensor_type(torch.cuda.DoubleTensor if torch.cuda.is_available()
                                       else torch.DoubleTensor)
         device = "cuda:0"
-        print("Graphics Power!")
+        # print("Graphics Power!")
     else:
         torch.set_default_tensor_type(torch.DoubleTensor)
         device = None
@@ -69,13 +69,14 @@ def train(NN_index, trainsetsize):
 
     # normalization
     train_data = (train_data - mean) / stnddev
-    val_data = (val_data - mean) / stnddev
+    val_data = (val_data - mean) / stnddev  # welches????????????????????????
+    # val_data = (val_data[:, 1::] - mean[1::]) / stnddev[1::]
     print("val data shape and ex:", val_data.shape, val_data[0])
 
     train_set, val_set = PerovskiteDataset(train_data), PerovskiteDataset(val_data)
 
     # Variable batch and set loader
-    train_batchsize = 2000
+    train_batchsize = 1000
     val_batchsize = len(val_data)  # 231472  # all or small like 2000 ?
     train_loader, val_loader = DataLoader(train_set, batch_size=train_batchsize, shuffle=True, drop_last=False), \
                                DataLoader(val_set, batch_size=val_batchsize, drop_last=True)  # shuffle=True
@@ -183,16 +184,6 @@ def train(NN_index, trainsetsize):
     # summary(netz, (1, train_batchsize, int(feattotal)))  # channel, H ,W
 
 
-    model_checkpoint = 'NN_'  # name
-    # NN_index = sys.argv[1]
-
-    if (os.path.isfile(model_checkpoint)):
-        model.load_state_dict(torch.load(model_checkpoint + str(NN_index), map_location="gpu"))
-        # max_epoch = 1000  # imprtance?
-    else:
-        max_epoch = 100
-
-
     lossMAE = nn.L1Loss()  # MAE  # to ignite
     lossMSE = nn.MSELoss()
     # torch.optim.SGD(params, lr=0.01)
@@ -208,11 +199,13 @@ def train(NN_index, trainsetsize):
                                                      # 'NLL': Loss(lossNLL)
                                                      })  # output_transform=output_retransform_znormalize) expects (x, pred, y)
 
+    # Progressbar
     pbar = ignite.contrib.handlers.ProgressBar(persist=False)
     pbar.attach(trainer, output_transform=lambda x: {'MAE': x})
 
-    # TensorboardX generate new file
-    log = 'active'
+    # Save n Load
+    model_checkpoint = 'NN_'  # NN_index = sys.argv[1]
+    # log = 'active'
     logcount = 0
     al_level = 0
     while (os.access(log + "/run_" + str(logcount), os.F_OK) == True):  # +str(NN_index)
@@ -221,11 +214,21 @@ def train(NN_index, trainsetsize):
         al_level += 1
     os.mkdir(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(NN_index) + "/al_" + str(al_level))
     writer = SummaryWriter(log_dir=log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(NN_index) + "/al_" + str(al_level))  # +"NN_1" ? declaration for multiple NN
-    print("Run: ", (logcount - 1), "NN: ", NN_index, "AL: ", al_level)  # , comment=modelform)
+    print("Run: ", (logcount - 1), "NN: ", NN_index, "AL: ", al_level, "len of trainset: ", len(train_data))  # , comment=modelform)
     # print("Modelform:", modelform)
 
-    # # tensorboardlogger
-    # ignite.contrib.handlers.tensorboard_logger.TensorboardLogger(log_dir=log+"/run_"+str(_))
+    if (os.path.isfile(model_checkpoint + str(NN_index) + '.pt')):
+        print("NN: ", NN_index, "loaded")
+        checkpoint = torch.load(model_checkpoint + str(NN_index) + '.pt')
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        # model.load_state_dict(torch.load(model_checkpoint + str(NN_index) + '.pt', map_location="gpu"))
+        # max_epoch = 1000  # imprtance?
+    else:
+        print("model not loaded!")
+    #     max_epoch = 50
+
+
 
     start = timeit.default_timer()
 
@@ -259,30 +262,11 @@ def train(NN_index, trainsetsize):
             metrics = evaluator.state.metrics
             print("Validation: ", metrics)
             writer.add_scalar('MAEvsEpoch_validation', metrics["MAE"], trainer.state.epoch)
-
-            # print("trainloader")
-            # print("len:", train_loader.dataset.__len__())
-            # print(train_loader.dataset)
-            # print(train_loader.dataset.__getitem__(0))
-            # print("train_set")
-            # print(train_set.__len__())
-            # print(train_set.__getitem__(0))
-            # for i in range(train_set.__len__()):
-            #     print(train_set.__getitem__(i))
-            # print(train_set.data.shape)
-            # print(train_set.data)
-            # metrics
-
-            # if(trainer.state.epoch%max_epoch==0):
-            #     writer.close()  # generating mass of files
-        if (trainer.state.epoch % evaluate_every == max_epoch):
+        if trainer.state.epoch % evaluate_every == max_epoch:
             writer.close()
-
 
     evaluate_every = 10
 
+    trainer.run(train_loader, max_epochs=max_epoch)
 
-    trainer.run(train_loader, max_epochs=max_epoch)  # for training first trainset
-
-    torch.save(model.state_dict(), model_checkpoint + str(NN_index) + '.pt')
-
+    torch.save({'model_state_dict': model.state_dict(), 'optimizer_state_dict': optimizer.state_dict()}, model_checkpoint + str(NN_index) + '.pt')

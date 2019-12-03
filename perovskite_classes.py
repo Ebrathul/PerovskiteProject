@@ -330,14 +330,14 @@ def generateElementdict():
                         #   ionizationenergy,  # ionizationenergy in eV
                           ]
         # peri.Element.from_Z(i).valence]  # number of valence electrons
-    print("Element and feat.:", elementdict)
+    # print("Element and feat.:", elementdict)
     return elementdict
 
 
 def readdata(file):
     print('Loaded preprocessed data from file')  # Ehull, group1, raw1, elecneg1, group2, raw2, elecneg2, group3, raw3, elecneg3
     newdata = np.load(open(file, 'rb'))
-    print("real values: ", newdata[0, :])
+    # print("real values: ", newdata[0, :])
     # Variable for Elements
     featperelem = ((len(newdata[0, :])-1)/3)  # Elementname still in list
     datavariables = (1 + 3 * featperelem)  # Ehull + feattotal
