@@ -31,7 +31,7 @@ if os.path.isfile('traindata.npy'):
 
 for i in range(al_steps):
     for j in range(NN_number):
-        train(j, trainsetsize, log, 200-5*i)
+        train(j, trainsetsize, log, 500)
     add_train_data(trainsetaddition)
-train(NN_number, trainsetsize, log, 1000)
+# train(NN_number, trainsetsize, log, 1000)
 
