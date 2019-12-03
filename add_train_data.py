@@ -184,6 +184,6 @@ def add_train_data(trainsetaddition):
 
     val_data = np.delete(val_data, index, axis=0)
 
-    # np.save(open('traindata.npy', 'wb'), train_data, allow_pickle=True)
-    # np.save(open('valdata.npy', 'wb'), val_data, allow_pickle=True)
+    np.save(open('traindata.npy', 'wb'), train_data, allow_pickle=True)
+    np.save(open('valdata.npy', 'wb'), val_data, allow_pickle=True)
 # add_train_data(1000)

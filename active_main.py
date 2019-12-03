@@ -35,3 +35,5 @@ for i in range(al_steps):
     add_train_data(trainsetaddition)
 # train(NN_number, trainsetsize, log, 1000)
 
+
+
