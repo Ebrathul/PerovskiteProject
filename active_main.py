@@ -4,7 +4,7 @@ from add_train_data import add_train_data
 import shutil
 
 al_steps = 30
-NN_number = 10
+NN_number = 5
 trainsetsize = 5000
 trainsetaddition = 500
 

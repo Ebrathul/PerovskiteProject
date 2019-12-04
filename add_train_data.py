@@ -138,6 +138,10 @@ def add_train_data(trainsetaddition, NN_number):
     # normalization
     val_data_x = (val_data[:, 1::] - mean[1::]) / stnddev[1::]
     print("val data shape and ex:", val_data_x.shape, val_data_x[0])
+
+    size = val_data_x.shape  # for conv NN????
+    val_data_x = val_data_x.reshape((size[0], 1, size[1]))
+
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
 
@@ -150,6 +154,7 @@ def add_train_data(trainsetaddition, NN_number):
             # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             # model.load_state_dict(torch.load(model_checkpoint + str(NN_index) + '.pt', map_location="gpu"))
             # max_epoch = 1000  # imprtance?
+
             predictions[NN_index] = model(torch.tensor(val_data_x)).detach().cpu().numpy().reshape(len(val_data_x),)  # Variable(torch.from_numpy(x)) ??????
         else:
             print('model not available')
@@ -185,4 +190,4 @@ def add_train_data(trainsetaddition, NN_number):
 
     np.save(open('traindata.npy', 'wb'), train_data, allow_pickle=True)
     np.save(open('valdata.npy', 'wb'), val_data, allow_pickle=True)
-# add_train_data(1000)
+# add_train_data(1000, 10)
