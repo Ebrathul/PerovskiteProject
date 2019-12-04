@@ -32,7 +32,7 @@ from torchvision import transforms
 import matplotlib.pyplot as plt
 
 
-def add_train_data(trainsetaddition):
+def add_train_data(trainsetaddition, NN_number):
     model_checkpoint = 'NN_'  # name
     D_in = int(6)  # !!!!!!!!! Has to be set when changing to different featurecount
     D_out = 1
@@ -44,91 +44,91 @@ def add_train_data(trainsetaddition):
 
     # Sequential net, structure and functions
     # Working NOT conv NN
-    model = nn.Sequential(
-        nn.Linear(D_in, H1),
-        nn.LeakyReLU(),
-        nn.Linear(H1, H2),
-        nn.LeakyReLU(),
-        nn.Linear(H2, H3),
-        nn.Tanh(),
-        nn.Linear(H3, D_out),
-    )  # lr:0.1
-
     # model = nn.Sequential(
-    #     # wrapped(),
-    #
-    #     # nn.Conv1d(1, 25, 2, stride=1, padding=1, dilation=1, groups=1, bias=True),
-    #     # nn.ELU(),
-    #     #
-    #     # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     # nn.Conv1d(25, 25, 2, stride=1, padding=1, dilation=1, groups=1, bias=True),
-    #     # nn.ELU(),
-    #     #
-    #     # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     # nn.Conv1d(25, 25, 2, stride=1, padding=1, dilation=1, groups=1, bias=True),
-    #     # nn.ELU(),
-    #
-    #     # nn.Dropout(0.1),
-    #     # nn.AvgPool1d(2),
-    #
-    #     # torch.nn.BatchNorm1d(1, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     nn.Conv1d(1, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
-    #     # in_channels, out_channels, kernel_size
-    #     nn.ELU(),
-    #
-    #     torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     nn.Conv1d(20, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
-    #     # in_channels, out_channels, kernel_size
-    #     nn.ELU(),
-    #
-    #     nn.Dropout(0.1),
-    #     # nn.MaxPool1d(3),
-    #
-    #     torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     nn.Conv1d(20, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
-    #     # in_channels, out_channels, kernel_size
-    #     nn.ELU(),
-    #
-    #     torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     nn.Conv1d(20, 25, 5, stride=1, padding=2, dilation=2, groups=1, bias=True),
-    #     nn.ELU(),
-    #
-    #     torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
-    #     nn.Dropout(0.1),
-    #     # testarea
-    #     nn.ELU(),
-    #
-    #     nn.Dropout(0.01),
-    #
-    #     torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
-    #     nn.ELU(),
-    #     # print("1"),
-    #     nn.Dropout(0.05),
-    #     nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
-    #     nn.ELU(),
-    #
-    #     torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
-    #     # print("2"),
-    #     # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     # nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=4, groups=1, bias=True),
-    #     # print("3"),
-    #     # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     # nn.Conv1d(25, 25, 3, stride=2, padding=2, dilation=2, groups=1, bias=True),
-    #     nn.ELU(),
-    #
-    #     # nn.AvgPool1d(3),
-    #     nn.ELU(),
-    #     flatten(),
-    #     nn.Dropout(0.01),
-    #     nn.Linear(200, H2),
-    #     nn.ELU(),
+    #     nn.Linear(D_in, H1),
+    #     nn.LeakyReLU(),
+    #     nn.Linear(H1, H2),
+    #     nn.LeakyReLU(),
     #     nn.Linear(H2, H3),
     #     nn.Tanh(),
-    #     nn.Linear(H3, D_out)
-    # )
+    #     nn.Linear(H3, D_out),
+    # )  # lr:0.1
+
+    model = nn.Sequential(
+        # wrapped(),
+
+        # nn.Conv1d(1, 25, 2, stride=1, padding=1, dilation=1, groups=1, bias=True),
+        # nn.ELU(),
+        #
+        # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        # nn.Conv1d(25, 25, 2, stride=1, padding=1, dilation=1, groups=1, bias=True),
+        # nn.ELU(),
+        #
+        # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        # nn.Conv1d(25, 25, 2, stride=1, padding=1, dilation=1, groups=1, bias=True),
+        # nn.ELU(),
+
+        # nn.Dropout(0.1),
+        # nn.AvgPool1d(2),
+
+        # torch.nn.BatchNorm1d(1, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(1, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
+        # in_channels, out_channels, kernel_size
+        nn.ELU(),
+
+        torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(20, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
+        # in_channels, out_channels, kernel_size
+        nn.ELU(),
+
+        nn.Dropout(0.1),
+        # nn.MaxPool1d(3),
+
+        torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(20, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
+        # in_channels, out_channels, kernel_size
+        nn.ELU(),
+
+        torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(20, 25, 5, stride=1, padding=2, dilation=2, groups=1, bias=True),
+        nn.ELU(),
+
+        torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
+        nn.Dropout(0.1),
+        # testarea
+        nn.ELU(),
+
+        nn.Dropout(0.01),
+
+        torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
+        nn.ELU(),
+        # print("1"),
+        nn.Dropout(0.05),
+        nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
+        nn.ELU(),
+
+        torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
+        # print("2"),
+        # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        # nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=4, groups=1, bias=True),
+        # print("3"),
+        # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        # nn.Conv1d(25, 25, 3, stride=2, padding=2, dilation=2, groups=1, bias=True),
+        nn.ELU(),
+
+        # nn.AvgPool1d(3),
+        nn.ELU(),
+        flatten(),
+        nn.Dropout(0.01),
+        nn.Linear(150, H2),
+        nn.ELU(),
+        nn.Linear(H2, H3),
+        nn.Tanh(),
+        nn.Linear(H3, D_out)
+    )
 
     train_data = np.load(open('traindata.npy', 'rb'))
     val_data = np.load(open('valdata.npy', 'rb'))
@@ -141,9 +141,8 @@ def add_train_data(trainsetaddition):
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
 
-    N = 5
-    predictions = np.zeros((N, len(val_data)))
-    for NN_index in range(N):
+    predictions = np.zeros((NN_number, len(val_data)))
+    for NN_index in range(NN_number):
         if (os.path.isfile(model_checkpoint + str(NN_index) + '.pt')):
             print("NN: ", NN_index, "loaded")
             checkpoint = torch.load(model_checkpoint + str(NN_index) + '.pt')
@@ -167,8 +166,8 @@ def add_train_data(trainsetaddition):
         new_train_data.append(val_data[index[i]])
     new_train_data = np.asarray(new_train_data)
 
-    # n, bins, _ = plt.hist(new_train_data[:, 0], 50)
-    # plt.show()
+    n, bins, _ = plt.hist(new_train_data[:, 0], 50)
+    plt.show()
     # print(train_data.shape)
     # print(new_train_data.shape)
     # n, bins, _ = plt.hist(train_data[:, 0], 50)

@@ -1,11 +1,12 @@
 import os
 from train import train
 from add_train_data import add_train_data
+import shutil
 
 al_steps = 30
-NN_number = 6
+NN_number = 10
 trainsetsize = 5000
-trainsetaddition = 1000
+trainsetaddition = 500
 
 model_checkpoint = 'NN_'  # name
 log = 'active'
@@ -28,12 +29,23 @@ if os.path.isfile('traindata.npy'):
         if os.path.isfile((model_checkpoint + str(i) + '.pt')):
             os.remove(model_checkpoint + str(i) + '.pt')
 
-
+# Active learning train loop
 for i in range(al_steps):
     for j in range(NN_number):
         train(j, trainsetsize, log, 500)
-    add_train_data(trainsetaddition)
+    add_train_data(trainsetaddition, NN_number)
 # train(NN_number, trainsetsize, log, 1000)
 
 
+# move files to corresponding location
+os.rename("traindata.npy", log + "/run_" + str(logcount) + "/traindata.npy")
+# shutil.move("traindata.npy", log + "/run_" + str(logcount) + "/traindata.npy")
+# os.replace("traindata.npy", log + "/run_" + str(logcount) + "/traindata.npy")
 
+os.rename("valdata.npy", log + "/run_" + str(logcount) + "/valdata.npy")
+# shutil.move("valdata.npy", log + "/run_" + str(logcount) + "/valdata.npy")
+# os.replace("valdata.npy", log + "/run_" + str(logcount) + "/valdata.npy")
+for i in range(NN_number):
+    os.rename(model_checkpoint + str(i) + '.pt', log + "/run_" + str(logcount) + "/" + model_checkpoint + str(i) + '.pt')
+    # shutil.move(model_checkpoint + str(i) + '.pt', log + "/run_" + str(logcount) + "/" + model_checkpoint + str(i) + '.pt')
+    # os.replace(model_checkpoint + str(i) + '.pt', log + "/run_" + str(logcount) + "/" + model_checkpoint + str(i) + '.pt')
