@@ -4,7 +4,7 @@ from add_train_data import add_train_data
 import shutil
 
 al_steps = 30
-NN_number = 5
+NN_number = 10
 trainsetsize = 5000
 trainsetaddition = 500
 
@@ -32,9 +32,9 @@ if os.path.isfile('traindata.npy'):
 # Active learning train loop
 for i in range(al_steps):
     for j in range(NN_number):
-        train(j, trainsetsize, log, 500)
+        train(j, trainsetsize, log, 500 - (10*al_steps))  # max_epoch reduced in each al step sqrt to reduce?
     add_train_data(trainsetaddition, NN_number)
-# train(NN_number, trainsetsize, log, 1000)
+train(NN_number, trainsetsize + al_steps*trainsetaddition, log, 1000)
 
 
 # move files to corresponding location

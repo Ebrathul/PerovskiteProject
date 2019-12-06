@@ -45,7 +45,7 @@ def train(NN_index, trainsetsize, log, max_epoch):
     # file = 'full_len.npy'
     if os.path.isfile('traindata.npy'):
         newdata, elementdict, featperelem, datavariables, feattotal = generateData(file)
-        print("loaded random datasets")
+        print("loaded given datasets")
         train_data = np.load(open('traindata.npy', 'rb'))
         val_data = np.load(open('valdata.npy', 'rb'))
     else:
@@ -57,6 +57,7 @@ def train(NN_index, trainsetsize, log, max_epoch):
 
         newdata, elementdict, featperelem, datavariables, feattotal = generateData(file)  # insert filename
         print("Shape of read data: ", newdata.shape)
+        print("generating random files")
         create_dataset(newdata, trainsetsize)
         train_data = np.load(open('traindata.npy', 'rb'))
         val_data = np.load(open('valdata.npy', 'rb'))
@@ -76,7 +77,7 @@ def train(NN_index, trainsetsize, log, max_epoch):
     train_set, val_set = PerovskiteDataset(train_data), PerovskiteDataset(val_data)
 
     # Variable batch and set loader
-    train_batchsize = 500
+    train_batchsize = 1000
     val_batchsize = len(val_data)  # 231472  # all or small like 2000 ?
     train_loader, val_loader = DataLoader(train_set, batch_size=train_batchsize, shuffle=True, drop_last=False), \
                                DataLoader(val_set, batch_size=val_batchsize, drop_last=True)  # shuffle=True

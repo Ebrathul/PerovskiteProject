@@ -23,13 +23,15 @@ import timeit
 import torch
 from perovskite_classes import get_mean_stndev, getRandomSets, PerovskiteDataset, create_supervised_trainer, \
     create_supervised_evaluator
-from perovskite_classes import flatten, wrapped, create_dataset
+from perovskite_classes import flatten, wrapped, create_dataset, generateElementdict
 from perovskite_classes import prepare_batch_conv as prepare_batch  # _conv
 from perovskite_classes import generateData
 from ignite.engine.engine import Engine, State, Events
 from ignite.utils import convert_tensor
 from torchvision import transforms
 import matplotlib.pyplot as plt
+import pymatgen as mg
+import pymatgen.core.periodic_table as peri
 
 
 def add_train_data(trainsetaddition, NN_number):
@@ -141,6 +143,7 @@ def add_train_data(trainsetaddition, NN_number):
 
     size = val_data_x.shape  # for conv NN????
     val_data_x = val_data_x.reshape((size[0], 1, size[1]))
+    print("val data shape and ex:", val_data_x.shape, val_data_x[0])
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
@@ -185,6 +188,26 @@ def add_train_data(trainsetaddition, NN_number):
     # print(train_data.shape)
     # n, bins, _ = plt.hist(train_data[:, 0], 50)
     # plt.show()
+
+    # loop for finding witch materials are chosen
+    elemincompound = 3
+    elements = generateElementdict()
+    materials = []
+    elemcountlist = np.zeros((len(elements), elemincompound + 1))
+    elementstoprint = 10
+    for i in range(len(elements)):
+        number, group, row = elements[i]
+        for j in range(trainsetaddition):
+            for k in range(elemincompound):  # count of elements in compound
+                if (group == new_train_data[j, 1 + 2*k] and row == new_train_data[j,2 + 2*k]):
+                    materials[j, k] = elements[i][0]
+                    elemcountlist[i, k] += 1
+                    elemcountlist[i, 3] += elemcountlist[i, k]
+    indexelement = np.flip(np.argsort(elemcountlist[:, 3]))[0:elementstoprint]
+    print("Elements choosen by AL")
+    for i in range(elementstoprint):  # print elements
+        print(i, elements(indexelement)[0])
+
 
     val_data = np.delete(val_data, index, axis=0)
 
