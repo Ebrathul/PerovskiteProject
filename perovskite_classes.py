@@ -46,7 +46,7 @@ class flatten(nn.Module):
         return x.view(x.size()[0], -1)
 
 
-class wrapped(nn.Module):
+class wrapped(nn.Module):  # probably not working
     def forward(self, x):  # , n):
         n = 1
         length = x.shape[2]
@@ -162,7 +162,7 @@ def generateData(file):
     elementdict = generateElementdict()
     if os.path.isfile(file):
         newdata, featperelem, datavariables, feattotal = readdata(file)
-        return newdata, elementdict,featperelem, datavariables, feattotal
+        return newdata, elementdict, featperelem, datavariables, feattotal
     else:
         # Variable for Elements
         featperelem = (len(elementdict[1]) - 1)  # Elementname still in list
@@ -235,6 +235,7 @@ def readdata(file):
     featperelem = ((len(newdata[0, :])-1)/3)  # Elementname still in list
     datavariables = (1 + 3 * featperelem)  # Ehull + feattotal
     feattotal = datavariables - 1
+    print("featperelem, datavariables, feattotal:", featperelem, datavariables, feattotal)
     return newdata, featperelem, datavariables, feattotal
 
 
@@ -244,7 +245,7 @@ def rawdataprocessing(elementdict, featperelem, datavariables, feattotal, file):
     data = pickle.load(dataraw, encoding='latin1')
     dataraw.close()
     print("Datensatzlaenge: ", len(data), "Anzahl der Features: ", datavariables)
-    newdata = np.zeros((len(data), datavariables))  # Features(Energie+ 3*Elementeigenschaften)
+    newdata = np.zeros((len(data), datavariables))  # Features(Energy + 3*Elementfeatures)
     # Generate prepared Data
     count = 0
     for i in range(len(data)):
