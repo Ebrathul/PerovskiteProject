@@ -34,7 +34,7 @@ for i in range(al_steps):
     for j in range(NN_number):
         train(j, trainsetsize, log, 100)  #  - (10*i))  # max_epoch reduced in each al step sqrt to reduce?
     add_train_data(trainsetaddition, NN_number, log, i)
-train(NN_number, trainsetsize + al_steps*trainsetaddition, log, 1000)
+# train(NN_number, trainsetsize + al_steps*trainsetaddition, log, 1000)
 
 
 # move files to corresponding location

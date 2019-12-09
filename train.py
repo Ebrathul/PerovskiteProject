@@ -43,20 +43,12 @@ def train(NN_index, trainsetsize, log, max_epoch):
 
     # file = 'grouprow.npy'
     # file = 'full_len.npy'
-    file = 'data11.npy'
+    file = 'data11.npy'  # feat1A, feat1B, feat1C, feat2A, feat2B
     if os.path.isfile('traindata.npy'):
         newdata, elementdict, featperelem, datavariables, feattotal = generateData(file)
         print("loaded given datasets")
         train_data = np.load(open('traindata.npy', 'rb'))
         val_data = np.load(open('valdata.npy', 'rb'))
-    # elif file == 'DATA11.pickle':
-    #     newdata = pickle.load(open('DATA11.pickle', 'rb'), encoding='latin1')  # Jonathan
-    #     featperelem, datavariables, feattotal = 11, 34, 33
-    #     print("Shape of read data: ", newdata.shape)
-    #     print("generating random files from data11")
-    #     create_dataset(newdata, trainsetsize)
-    #     train_data = np.load(open('traindata.npy', 'rb'))
-    #     val_data = np.load(open('valdata.npy', 'rb'))
     else:
         # disable features in classes to gen new data
         newdata, elementdict, featperelem, datavariables, feattotal = generateData(file)  # insert filename

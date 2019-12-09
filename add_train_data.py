@@ -177,7 +177,9 @@ def add_train_data(trainsetaddition, NN_number, log, al_level):
         # predictions[i] = np.append(predictions[i], model(val_data_x), axis=0)
 
 
-    mean_p = np.mean(predictions, axis=0)
+    mean_p = np.mean(predictions, axis=0)* stnddev[0]
+    # print("mean_p val_data stnddev[0] shape:", mean_p.shape, val_data.shape, stnddev[0].shape)
+    errorofprediction = mean_p - val_data[:, 0]
     std_p = np.std(predictions, axis=0)
     print(std_p.shape)
 
@@ -204,29 +206,45 @@ def add_train_data(trainsetaddition, NN_number, log, al_level):
     # loop for finding mean MAE one elements
     elemincompound = 3
     elements = generateElementdict()
-    print(elements[1], len(elements))
+    elementlabel = []
+    number = 0
+    # print(elements[1], len(elements))
     featperelem = 11
     elemMAE = np.zeros((len(elements) + 1, 2))
+    # np.delete(elemMAE, 0, axis=0)
+    # np.delete(elemMAE, len(elemMAE), 0)
     for i in range(1, len(elements)):
         number, group, row = elements[i]
-        print("number, group, row", number, group, row)
+        elementlabel.append(elements[i][0])
+        # print("number, group, row", number, group, row)
         for j in range(len(val_data_x)):
             for k in range(elemincompound):  # count of elements in compound
-                if group == int(val_data[j, 1 + featperelem * k]) and row == int(val_data[j, 2 + featperelem * k]):
+                if i == int(val_data[j, k]):  # 0, 1, 2 are atomic numbers
                     elemMAE[i, 0] += mean_p[j]
                     elemMAE[i, 1] += 1
         if elemMAE[i, 1] != 0:
             elemMAE[i, 0] = elemMAE[i, 0] / elemMAE[i, 1]
+            elemMAE[i, 1] = i
+            print(elements[i][0], elemMAE[i, 0], elemMAE[i, 1])
         else:
             print(elements[i][0], "division by zero")
             elemMAE[i, 0] = 0
-    n, bins, _ = plt.hist(elemMAE[:, 0], 50)
+    # n, bins, _ = plt.hist(elemMAE[:, 0], 100)
+    # plt.show()
+
+    y_pos = np.arange(len(elementlabel)+2)
+    # print("Len of elementlist", len(elementlabel))
+    # print("shape of elemMAE", elemMAE[:, 0].shape, elemMAE[:, 0])
+    plt.bar(elemMAE[:, 1], elemMAE[:, 0], align='center', alpha=0.5)
+    plt.xticks(y_pos, elementlabel)
+    plt.ylabel('Elements MAE meV')
+    plt.title('Elements')
     plt.show()
     plt.savefig(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level-1) + "/elemMAE.png")
 
 
     # loop for finding witch materials are chosen
-    materials = []
+    # materials = []
     elemcountlist = np.zeros((len(elements) + 1, elemincompound + 1))
     elementstoprint = 10
     featperelem = 2
@@ -234,15 +252,21 @@ def add_train_data(trainsetaddition, NN_number, log, al_level):
         number, group, row = elements[i]
         for j in range(trainsetaddition):
             for k in range(elemincompound):  # count of elements in compound
-                if (group == new_train_data[j, 1 + featperelem*k] and row == new_train_data[j,2 + featperelem*k]):
-                    materials[j, k] = elements[i][0]
+                if new_train_data[j, k] == i:
+                    # materials[j].append(elements[i][0])
                     elemcountlist[i, k] += 1
                     elemcountlist[i, 3] += elemcountlist[i, k]
-    indexelement = np.flip(np.argsort(elemcountlist[:, 3]))[0:elementstoprint]
-    print("Elements choosen by AL")
-    for i in range(elementstoprint):  # print elements
-        print(i, elements(indexelement)[0])
-    n, bins, _ = plt.hist(elemcountlist[:, 3], 50)
+    # indexelement = np.flip(np.argsort(elemcountlist[:, 3]))[0:elementstoprint]
+    # print("Elements choosen by AL")
+    # for i in range(elementstoprint):  # print elements
+    #     print(i, elements[indexelement(i)][0])
+    # n, bins, _ = plt.hist(elemcountlist[:, 3], 100)
+    # plt.show()
+    y_pos = np.arange(len(elementlabel)+2)
+    plt.bar(y_pos, elemcountlist[:, 3], align='center', alpha=0.5)
+    plt.xticks(y_pos, elementlabel)
+    plt.ylabel('Count of Compounds')
+    plt.title('Elements chosen by AL')
     plt.show()
     plt.savefig(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level-1) + "/elem_in_addtrain.png")
 
