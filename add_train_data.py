@@ -192,8 +192,9 @@ def add_train_data(trainsetaddition, NN_number, log, al_level):
     new_train_data = np.asarray(new_train_data)
 
     n, bins, _ = plt.hist(new_train_data[:, 0], 50)
-    plt.show()
     plt.savefig(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level-1) + "/energydistr.png")
+    plt.show()
+
 
     train_data = np.vstack((train_data, new_train_data))
 
@@ -239,8 +240,8 @@ def add_train_data(trainsetaddition, NN_number, log, al_level):
     plt.xticks(y_pos, elementlabel)
     plt.ylabel('Elements MAE meV')
     plt.title('Elements')
-    plt.show()
     plt.savefig(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level-1) + "/elemMAE.png")
+    plt.show()
 
 
     # loop for finding witch materials are chosen
@@ -267,8 +268,8 @@ def add_train_data(trainsetaddition, NN_number, log, al_level):
     plt.xticks(y_pos, elementlabel)
     plt.ylabel('Count of Compounds')
     plt.title('Elements chosen by AL')
-    plt.show()
     plt.savefig(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level-1) + "/elem_in_addtrain.png")
+    plt.show()
 
 
     val_data = np.delete(val_data, index, axis=0)
