@@ -4,7 +4,7 @@ from add_train_data import add_train_data
 import shutil
 
 al_steps = 30
-NN_number = 3
+NN_number = 10
 trainsetsize = 5000
 trainsetaddition = 500
 
@@ -32,20 +32,16 @@ if os.path.isfile('traindata.npy'):
 # Active learning train loop
 for i in range(al_steps):
     for j in range(NN_number):
-        train(j, trainsetsize, log, 100)  #  - (10*i))  # max_epoch reduced in each al step sqrt to reduce?
+        if i == 0:
+            train(j, trainsetsize, log, 2000)
+        else:
+            train(j, trainsetsize, log, 500)  #  - (10*i))  # max_epoch reduced in each al step sqrt to reduce?
     add_train_data(trainsetaddition, NN_number, log, i)
 # train(NN_number, trainsetsize + al_steps*trainsetaddition, log, 1000)
 
 
 # move files to corresponding location
 os.rename("traindata.npy", log + "/run_" + str(logcount) + "/traindata.npy")
-# shutil.move("traindata.npy", log + "/run_" + str(logcount) + "/traindata.npy")
-# os.replace("traindata.npy", log + "/run_" + str(logcount) + "/traindata.npy")
-
 os.rename("valdata.npy", log + "/run_" + str(logcount) + "/valdata.npy")
-# shutil.move("valdata.npy", log + "/run_" + str(logcount) + "/valdata.npy")
-# os.replace("valdata.npy", log + "/run_" + str(logcount) + "/valdata.npy")
 for i in range(NN_number):
     os.rename(model_checkpoint + str(i) + '.pt', log + "/run_" + str(logcount) + "/" + model_checkpoint + str(i) + '.pt')
-    # shutil.move(model_checkpoint + str(i) + '.pt', log + "/run_" + str(logcount) + "/" + model_checkpoint + str(i) + '.pt')
-    # os.replace(model_checkpoint + str(i) + '.pt', log + "/run_" + str(logcount) + "/" + model_checkpoint + str(i) + '.pt')

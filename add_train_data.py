@@ -177,7 +177,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level):
         # predictions[i] = np.append(predictions[i], model(val_data_x), axis=0)
 
 
-    mean_p = np.mean(predictions, axis=0)* stnddev[0]
+    mean_p = np.abs(np.mean(predictions, axis=0)* stnddev[0])
     # print("mean_p val_data stnddev[0] shape:", mean_p.shape, val_data.shape, stnddev[0].shape)
     errorofprediction = mean_p - val_data[:, 0]
     std_p = np.std(predictions, axis=0)
@@ -191,11 +191,11 @@ def add_train_data(trainsetaddition, NN_number, log, al_level):
         new_train_data.append(val_data[index[i]])
     new_train_data = np.asarray(new_train_data)
 
-    n, bins, _ = plt.hist(new_train_data[:, 0], 50)
+    n, bins, _ = plt.hist(new_train_data[:, 0], 100)
     plt.savefig(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level-1) + "/energydistr.png")
     plt.show()
 
-
+    np.save(open(log + "/run_" + str(logcount - 1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level - 1) + "/traindata.npy", 'wb'), train_data, allow_pickle=True)
     train_data = np.vstack((train_data, new_train_data))
 
     # print(train_data[])
