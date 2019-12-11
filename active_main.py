@@ -5,7 +5,7 @@ import shutil
 
 al_steps = 30
 NN_number = 10
-trainsetsize = 5000
+trainsetsize = 10000
 trainsetaddition = 500
 
 model_checkpoint = 'NN_'  # name
@@ -45,3 +45,5 @@ os.rename("traindata.npy", log + "/run_" + str(logcount) + "/traindata.npy")
 os.rename("valdata.npy", log + "/run_" + str(logcount) + "/valdata.npy")
 for i in range(NN_number):
     os.rename(model_checkpoint + str(i) + '.pt', log + "/run_" + str(logcount) + "/" + model_checkpoint + str(i) + '.pt')
+if os.path.isfile(log + "/NN_AL" + al_steps + "a" + trainsetaddition + "_start" + trainsetsize + "traindata.npy" == False):
+    os.rename(log + "/run_" + str(logcount), log + "/NN_AL" + al_steps + "a" + trainsetaddition + "_start" + trainsetsize)  # or CNN ??????????????

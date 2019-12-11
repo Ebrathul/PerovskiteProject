@@ -73,7 +73,7 @@ def train(NN_index, trainsetsize, log, max_epoch):
     train_set, val_set = PerovskiteDataset(train_data), PerovskiteDataset(val_data)
 
     # Variable batch and set loader
-    train_batchsize = 1000
+    train_batchsize = 500
     val_batchsize = len(val_data)  # 231472  # all or small like 2000 ?
     train_loader, val_loader = DataLoader(train_set, batch_size=train_batchsize, shuffle=True, drop_last=False), \
                                DataLoader(val_set, batch_size=val_batchsize, drop_last=True)  # shuffle=True
