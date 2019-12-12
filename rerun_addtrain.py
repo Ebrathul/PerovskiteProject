@@ -34,19 +34,26 @@ import pymatgen as mg
 import pymatgen.core.periodic_table as peri
 
 
-def add_train_data(trainsetaddition, NN_number, log, al_level, max_al):
+def add_train_data(trainsetaddition, NN_number, log, al_level, name):
     # Save n Load
     model_checkpoint = 'NN_'  # name
     logcount = 0
     # al_level = 0
-    while (os.access(log + "/run_" + str(logcount), os.F_OK) == True):  # +str(NN_index)
-        logcount += 1
-
+    # while (os.access(log + "/run_" + str(logcount), os.F_OK) == True):  # +str(NN_index)
+    #     logcount += 1
+    # while (os.access(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level), os.F_OK) == True):
+    #     al_level += 1
 
 
     # load data
-    train_data = np.load(open('traindata.npy', 'rb'))
-    val_data = np.load(open('valdata.npy', 'rb'))
+    data = np.load(open("data11.npy", "rb"))
+    train_data = np.load(open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/" + "traindata.npy", 'rb'))
+    data = np.vstack((data, train_data))
+    data, index = np.unique(data, axis=0, return_counts=True)
+    val_data = np.delete(data, np.nonzero(index > 1)[0], axis=0)
+    # print("nonzero", np.nonzero(index > 1), np.nonzero(index > 1)[0].shape)
+    # print("Shape of all data", data.shape, train_data.shape, val_data.shape, index.shape)
+    # val_data = np.load(open(log + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/" + "valdata.npy", 'rb'))
     # print("val data shape and ex:", val_data.shape, val_data[0])
 
 
@@ -162,15 +169,15 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, max_al):
 
     predictions = np.zeros((NN_number, len(val_data)))
     for NN_index in range(NN_number):
-        if (os.path.isfile(model_checkpoint + str(NN_index) + '.pt')):
+        if (os.path.isfile(log + "/" + name + "/" + model_checkpoint + str(NN_index) + "/al_" + str(al_level) + "/" + model_checkpoint + str(NN_index) + '.pt')):
             print("NN: ", NN_index, "loaded")
-            checkpoint = torch.load(model_checkpoint + str(NN_index) + '.pt')
+            checkpoint = torch.load(log + "/" + name + "/" + model_checkpoint + str(NN_index) + "/al_" + str(al_level) + "/" + model_checkpoint + str(NN_index) + '.pt')
             model.load_state_dict(checkpoint['model_state_dict'])
             # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             # model.load_state_dict(torch.load(model_checkpoint + str(NN_index) + '.pt', map_location="gpu"))
             # max_epoch = 1000  # imprtance?
 
-            predictions[NN_index] = model(torch.tensor(val_data_x)).detach().cpu().numpy().reshape(len(val_data_x),)
+            predictions[NN_index] = model(torch.tensor(val_data_x).float()).detach().cpu().numpy().reshape(len(val_data_x),)
         else:
             print('model not available')
         # predictions[i] = np.append(predictions[i], model(val_data_x), axis=0)
@@ -180,7 +187,8 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, max_al):
     # print("mean_p val_data stnddev[0] shape:", mean_p.shape, val_data.shape, stnddev[0].shape)
     for i in range(NN_number):
         mae += np.abs((predictions[i, :] * stnddev[0] + mean[0]) - val_data[:, 0])
-        mae = mae / NN_number
+    mae = mae / NN_number
+    print(np.mean(mae), mae.shape)
     std_p = np.std(predictions, axis=0)
     print(std_p.shape)
 
@@ -193,26 +201,16 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, max_al):
     new_train_data = np.asarray(new_train_data)
 
     n, bins, _ = plt.hist(new_train_data[:, 0], 100)
-    plt.savefig(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/energydistr.png")
+    plt.savefig(log + "/" + name + "/" + model_checkpoint + str(NN_index) + "/al_" + str(al_level) + "/energydistr.png")
     plt.show()
 
-
+    np.save(open(log + "/" + name + "/" + model_checkpoint + str(NN_index) + "/al_" + str(al_level) + "/traindata.npy", 'wb'), train_data, allow_pickle=True)
     train_data = np.vstack((train_data, new_train_data))
-    print("al_level", al_level)
-    print(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level-1) + "/new_data.npy")
-    if al_level != 0:
-        if os.path.isfile(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level-1) + '/new_data.npy'):
-            print("is file")
-            new_data = np.load(open(log + "/run_" + str(logcount - 1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level-1) + "/" + "new_data.npy", 'rb'))
-            print(new_train_data.shape, new_data.shape)
-            all_new_data = np.vstack((new_train_data, new_data))
-        else:
-            print("file not found")
-            all_new_data = np.load(open('all_new_data.npy', 'rb'), allow_pickle=True)
-    else:
-        print("new run?")
-        all_new_data = new_train_data
 
+    # print(train_data[])
+    # print(train_data.shape)
+    # n, bins, _ = plt.hist(train_data[:, 0], 50)
+    # plt.show()
 
 
     # loop for finding mean MAE one elements
@@ -225,6 +223,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, max_al):
     elemMAE = np.zeros((len(elements) + 1, 2))
     # np.delete(elemMAE, 0, axis=0)
     # np.delete(elemMAE, len(elemMAE), 0)
+    print("MAE of each Element")
     for i in range(1, len(elements)):
         number, group, row = elements[i]
         elementlabel.append(elements[i][0])
@@ -252,7 +251,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, max_al):
     plt.xticks(y_pos, elementlabel)
     plt.ylabel('Elements MAE meV')
     plt.title('Elements')
-    plt.savefig(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/elemMAE.png")
+    plt.savefig(log + "/" + name + "/" + model_checkpoint + str(NN_index) + "/al_" + str(al_level) + "/elemMAE.png")
     plt.show()
 
 
@@ -263,7 +262,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, max_al):
     featperelem = 2
     for i in range(1, len(elements)):
         number, group, row = elements[i]
-        for j in range(trainsetaddition):  # count of compounds
+        for j in range(trainsetaddition):
             for k in range(elemincompound):  # count of elements in compound
                 if new_train_data[j, k] == i:
                     # materials[j].append(elements[i][0])
@@ -280,35 +279,54 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, max_al):
     plt.xticks(y_pos, elementlabel)
     plt.ylabel('Count of Compounds')
     plt.title('Elements chosen by AL')
-    plt.savefig(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/elem_in_addtrain.png")
+    plt.savefig(log + "/" + name + "/" + model_checkpoint + str(NN_index) + "/al_" + str(al_level) + "/elem_in_addtrain.png")
     plt.show()
 
-    if al_level > 0:
-        elemcountlist = np.zeros((len(elements) + 1, elemincompound + 1))
-        for i in range(1, len(elements)):
-            number, group, row = elements[i]
-            for j in range(len(all_new_data)):
-                for k in range(elemincompound):  # count of elements in compound
-                    if all_new_data[j, k] == i:
-                        elemcountlist[i, k] += 1
-                        elemcountlist[i, 3] += elemcountlist[i, k]
-        y_pos = np.arange(len(elementlabel) + 2)
-        print(y_pos.shape, len(elementlabel))
-        plt.bar(y_pos, elemcountlist[:, 3], align='center', alpha=0.5)
-        plt.xticks(y_pos, elementlabel)
-        plt.ylabel('Count of Compounds')
-        plt.title('All Elements chosen by AL')
-        plt.savefig(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/all_elem_in_addtrain.png")
-        plt.show()
-
     val_data = np.delete(val_data, index, axis=0)
+    np.save(open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/valdata.npy", 'wb'), new_train_data, allow_pickle=True)
 
-    np.save(open(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/new_data.npy", 'wb'), new_train_data, allow_pickle=True)
-    np.save(open(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/traindata.npy", 'wb'), train_data, allow_pickle=True)
-    np.save(open(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/valdata.npy", 'wb'), val_data, allow_pickle=True)
-    np.save(open(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/all_new_data.npy", 'wb'), all_new_data, allow_pickle=True)
 
-    np.save(open('all_new_data.npy', 'wb'), all_new_data, allow_pickle=True)
-    np.save(open('traindata.npy', 'wb'), train_data, allow_pickle=True)
-    np.save(open('valdata.npy', 'wb'), val_data, allow_pickle=True)
-# add_train_data(500, 3, 'active', 0)
+
+al_steps = 30
+NN_number = 10
+trainsetsize = 5000
+trainsetaddition = 500
+model_checkpoint = 'NN_'  # name
+name = "NN_AL" + str(al_steps) + "a" + str(trainsetaddition) + "_start" + str(trainsetsize)  # or CNN ?
+log = 'active'
+new_data = []
+new_train_data = []
+for i in range(al_steps):
+    if i == 0:
+        new_train_data = np.load(open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(i) + "/" + "new_data.npy", 'rb'))
+    else:
+        print("Step:", i)
+        # add_train_data(trainsetaddition, NN_number, log, i, name)
+        new_data = np.load(open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(i) + "/" + "new_data.npy", 'rb'))
+        new_train_data = np.vstack((new_train_data, new_data))
+np.save(open(log + "/" + name + "/all_new_data.npy", 'wb'), new_train_data, allow_pickle=True)
+print(new_train_data.shape)
+
+elemincompound = 3
+elements = generateElementdict()
+elementlabel = []
+elemcountlist = np.zeros((len(elements) + 1, elemincompound + 1))
+for i in range(1, len(elements)):
+    number, group, row = elements[i]
+    elementlabel.append(elements[i][0])
+    for j in range(len(new_train_data)):
+        for k in range(elemincompound):  # count of elements in compound
+            if new_train_data[j, k] == i:
+                elemcountlist[i, k] += 1
+                elemcountlist[i, 3] += elemcountlist[i, k]
+y_pos = np.arange(len(elementlabel)+2)
+print(y_pos.shape, len(elementlabel))
+plt.bar(y_pos, elemcountlist[:, 3], align='center', alpha=0.5)
+plt.xticks(y_pos, elementlabel)
+plt.ylabel('Count of Compounds')
+plt.title('All Elements chosen by AL')
+plt.savefig(log + "/" + name + "/all_elem_in_addtrain.png")
+plt.show()
+
+
+
