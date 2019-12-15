@@ -10,6 +10,10 @@ trainsetsize = 5000
 trainsetaddition = 500
 max_per_element = 50
 fill_random = True
+if fill_random:
+    random_str = "True"
+else:
+    ramdom_str = "False"
 model_checkpoint = 'NN_'  # name
 log = 'active'
 name = log + "/NN_AL" + str(al_steps) + "a" + str(trainsetaddition) + "_start" + str(trainsetsize)
@@ -49,7 +53,7 @@ os.rename("traindata.npy", log + "/run_" + str(logcount) + "/traindata.npy")
 os.rename("valdata.npy", log + "/run_" + str(logcount) + "/valdata.npy")
 for i in range(NN_number):
     os.rename(model_checkpoint + str(i) + '.pt', log + "/run_" + str(logcount) + "/" + model_checkpoint + str(i) + '.pt')
-if os.path.isfile(log + "/NN_AL" + str(al_steps) + "a" + str(trainsetaddition) + "_max_per_ele" + str(max_per_element) + "Random" + str(fill_random) + "_start" + str(trainsetsize) + "traindata.npy" == False):
-    os.rename(log + "/run_" + str(logcount), log + "/NN_AL" + str(al_steps) + "a" + str(trainsetaddition) + "_max_per_ele" + str(max_per_element) + "Random" + str(fill_random) + "_start" + str(trainsetsize))  # or CNN ??????????????
+if os.path.isfile(log + "/NN_AL" + str(al_steps) + "a" + str(trainsetaddition) + "_max_per_ele" + str(max_per_element) + "Random_" + random_str + "_start" + str(trainsetsize) + "traindata.npy" == False):
+    os.rename(log + "/run_" + str(logcount), log + "/NN_AL" + str(al_steps) + "a" + str(trainsetaddition) + "_max_per_ele" + str(max_per_element) + "Random_" + random_str + "_start" + str(trainsetsize))  # or CNN ??????????????
 else:
     print("not possible", log + "/run_" + str(logcount), log + "/run_" + str(logcount), log + "/NN_AL" + str(al_steps) + "a" + str(trainsetaddition) + "_max_per_ele" + max_per_element + "Random" + str(fill_random) + "_start" + str(trainsetsize))

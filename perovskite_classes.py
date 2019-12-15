@@ -10,22 +10,6 @@ import pymatgen as mg
 import pymatgen.core.periodic_table as peri
 
 
-def get_mean_stndev(data):
-    mean = np.mean(data, axis=0)  # axis 0 is top to bottom, 1 would be sideways
-    stnddev = np.std(data, axis=0)  # , ddof=1)
-    # print("Mean: ", mean, "\nStnd dev: ", stnddev)
-    return mean, stnddev
-
-
-def getRandomSets(X, trainsetsize):  # shuffles the data and returns a training and a test set # needs 8 or more samples
-       np.random.shuffle(X)
-       Xtrain = X[0:trainsetsize]
-       Xtest = X[trainsetsize:len(X), :]
-       # print("Trainset: ", Xtrain[0][:])
-       # print("Validationset:", Xtest[0][:])
-       return Xtrain, Xtest
-
-
 def prepare_batch(batch, device=None, non_blocking=False):
     x = convert_tensor(batch["features"], device=device, non_blocking=non_blocking)
     y = convert_tensor(batch["ehull"], device=device, non_blocking=non_blocking)
@@ -149,6 +133,22 @@ def create_supervised_evaluator(model, metrics={}, std=1,
     for name, metric in metrics.items():
         metric.attach(engine, name)
     return engine
+
+
+def get_mean_stndev(data):
+    mean = np.mean(data, axis=0)  # axis 0 is top to bottom, 1 would be sideways
+    stnddev = np.std(data, axis=0)  # , ddof=1)
+    # print("Mean: ", mean, "\nStnd dev: ", stnddev)
+    return mean, stnddev
+
+
+def getRandomSets(X, trainsetsize):  # shuffles the data and returns a training and a test set # needs 8 or more samples
+       np.random.shuffle(X)
+       Xtrain = X[0:trainsetsize]
+       Xtest = X[trainsetsize:len(X), :]
+       # print("Trainset: ", Xtrain[0][:])
+       # print("Validationset:", Xtest[0][:])
+       return Xtrain, Xtest
 
 
 def create_dataset(data, trainsetsize):

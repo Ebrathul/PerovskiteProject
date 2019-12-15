@@ -302,6 +302,14 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
 
     # new_elementcount = np.asarray(elemcountlist[:, 3])
     print("count for each element", elementcount)  # counts how often each element was chosen
+    elements_not_used = []
+    print("Elements not used")
+    for i in range(elementcount):
+        if elementcount == 0 and i<0:
+            elements_not_used.append(i)
+            print(elements[i][0], i)
+    elements_not_used = np.asarray(elements_not_used)
+
     indexelement = np.flip(np.argsort(elementcount, axis=0))
     print("index_element", indexelement.shape)
     print("Elements choosen by AL")
