@@ -194,14 +194,15 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
         new_index = []
         index_counter = 0
         materials_skipped = 0
+        random_on_next_run = False
         print("len of elements", len(elements), "max per element", element_cap)
         while len(new_train_data) < trainsetaddition:
             # for i in range(1, trainsetaddition):
             # current_data = np.asarray(val_data[index[index_counter]])
-            if random:
-               print("Random addition on cap", index.shape, len(index))
-               current_index = np.random.randint(index_counter, len(index))
-
+            if random_on_next_run:
+                current_index = np.random.randint(index_counter, len(index))
+                print("Random addition on cap", current_index)
+                random_on_next_run = False
             else:
                 current_index = index[index_counter]
             current_data = new_train_data.copy()
@@ -224,6 +225,9 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
                     print("new traindata", len(new_train_data), len(new_index), index_counter)
                     index_counter += 1
                     materials_skipped += 1
+                    if fill_random:
+                        random_on_next_run = True
+                        index_counter -= 1
                     break
                 # last step
                 if elemcountlist[len(elements)-1, 3] < element_cap and i == len(elements)-1:
