@@ -42,8 +42,8 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, max_al):
     for i in range(1, len(elements)):
         elementlabel.append(elements[i][0])
     elementstoprint = 20
-    elemcountlist = np.zeros((len(elements) + 1, elemincompound + 1))
-    element_cap = trainsetaddition  # max count of elements in new data
+    # elemcountlist = np.zeros((len(elements) + 1, elemincompound + 1))
+    element_cap = 100  # trainsetaddition  # max count of elements in new data
 
     # Save n Load
     model_checkpoint = 'NN_'  # name
@@ -185,96 +185,59 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, max_al):
     index = np.asarray(np.flip(np.argsort(std_p))[0:len(val_data_x)])
 
 
-    def get_new_data_bounderies(val_data, index):
-        # loop for generating new data AND
-        # loop for finding witch materials are chosen
-        new_train_data = []
-        current_data = []
-        changecount = 0
-        linestoclear = []
-        for i in range(1, len(elements)):
-            # j = 0
-            # while len(new_train_data) <= trainsetaddition:
-            for j in range(trainsetaddition):  # count of compounds
-                current_data = np.asarray(val_data[index[j]])
-                # j += 1
-                print("data.shape", current_data.shape, index.shape, j)
-                for k in range(elemincompound):  # count of elements in compound
-                    print("len of new train data", len(new_train_data))
-                    if current_data[k] == i:
-                        print(i, k, elemcountlist[i, k], elemcountlist[i, 3])
-                        if j == len(index):
-                            print("count is max", i, j, len(new_train_data))
-                            # new_train_data.append(val_data[index[len(new_train_data)+1]])
-                        if elemcountlist[i, 3] < element_cap:
-                            elemcountlist[i, k] += 1  # elem at each position
-                            elemcountlist[i, 3] += 1  # elem in general
-                            if k == elemincompound-1:
-                                new_train_data.append(val_data[index[j]])
-                                print("material appended")
-                            else:
-                                print("material not appended")
-                        else:
-                            print("Material not taken count ")
-                            changecount += 1
-                            linestoclear.append(j)
-
-        new_train_data = np.asarray(new_train_data)
-        print("new_train_data", new_train_data.shape)
-        linestoclear = np.asarray(linestoclear)
-        print("lines to clear", len(linestoclear), changecount)
-        np.delete(index, linestoclear, axis=0)
-        return new_train_data
-
-    def get_new_data_bounderies2(val_data, index):
+    def get_new_data_bounderies(val_data, index, element_cap):
         # loop for generating new data AND
         # loop for finding witch materials are chosen
         # new_train_data = np.asarray(val_data[index[0]])
         new_train_data = []
         current_data = []
-        changecount = 0
-        linestoclear = []
+        new_index = []
         index_counter = 0
         materials_skipped = 0
-        print("len of elements", len(elements))
+        print("len of elements", len(elements), "max per element", element_cap)
         while len(new_train_data) < trainsetaddition:
             # for i in range(1, trainsetaddition):
-            print("start count loop", len(new_train_data), index_counter)
             # current_data = np.asarray(val_data[index[index_counter]])
-            current_data = new_train_data
+            current_data = new_train_data.copy()
             current_data.append(val_data[index[index_counter]])
+            current_data_array = np.asarray(current_data)
+            # print("val_data[index[index_counter]]", len(val_data[index[index_counter]]), index[index_counter], index_counter)
 
+            # print("start count loop", len(new_train_data), len(current_data), index_counter)
             # loop for finding witch materials are chosen
             elemcountlist = np.zeros((len(elements) + 1, elemincompound + 1))
             for i in range(1, len(elements)):
                 # print("Element", i, elemcountlist.shape, len(new_train_data), index_counter)
                 for j in range(len(current_data)):  # count of compounds
                     for k in range(elemincompound):  # count of elements in compound
-                        if np.asarray(current_data)[j, k] == i:
+                        if current_data_array[j, k] == i:
                             elemcountlist[i, k] += 1
                             elemcountlist[i, 3] += 1
                 if elemcountlist[i, 3] >= element_cap:
-                    print("material not appended, break", i, elemcountlist[i, 3])
-                    # print("new traindata", len(new_train_data), index_counter)
+                    print("material not appended, break", i, elemcountlist[i, 3], index_counter, )
+                    print("new traindata", len(new_train_data), len(new_index), index_counter)
                     index_counter += 1
                     materials_skipped += 1
                     break
+                # last step
                 if elemcountlist[len(elements)-1, 3] < element_cap and i == len(elements)-1:
-                    print("material appended")
+                    # print("material appended")
                     new_train_data.append(val_data[index[index_counter]])
+                    new_index.append(index[index_counter])
                     index_counter += 1
                     # new_train_data = np.vstack(new_train_data, current_data)
                     # print("new traindata", len(new_train_data), index_counter)
                     # new_train_data.append(val_data[index[i]])
-
+        # index = np.asarray(np.flip(np.argsort(std_p))[0:len(val_data_x)])
         new_train_data = np.asarray(new_train_data)
-        print("new_train_data", new_train_data.shape, index_counter)
+        new_index = np.asarray(new_index)
+        print("new_train_data", new_train_data.shape, new_index.shape, index_counter)
         # linestoclear = np.asarray(linestoclear)
         # print("lines to clear", len(linestoclear), changecount)
         # np.delete(index, linestoclear, axis=0)
         print("materials skipped", materials_skipped)
-        return new_train_data
-    new_train_data = get_new_data_bounderies2(val_data, index)
+        return new_train_data, np.asarray(elemcountlist[:, 3]), new_index
+    new_train_data, elementcount, new_index = get_new_data_bounderies(val_data, index, element_cap)
 
     # for i in range(changecount):
     #     new_train_data = np.vstack((new_train_data, val_data[index[(trainsetaddition+changecount)]]))
@@ -319,16 +282,19 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, max_al):
     elemMAE = get_mae_per_elem(mae)
 
 
-    new_elementcount = np.asarray(elemcountlist[:, 3])
-    indexelement = np.flip(np.argsort(new_elementcount, axis=0))
+    # new_elementcount = np.asarray(elemcountlist[:, 3])
+    print("count for each element", elementcount)  # counts how often each element was chosen
+    indexelement = np.flip(np.argsort(elementcount, axis=0))
     print("index_element", indexelement.shape)
     print("Elements choosen by AL")
     for i in range(elementstoprint):  # print elements
-        print(indexelement[i], elements[indexelement[i]][0], new_elementcount[indexelement[i]])
+        print(indexelement[i], elements[indexelement[i]][0], elementcount[indexelement[i]])
 
 
-    train_data = np.vstack((train_data, new_train_data))
-    val_data = np.delete(val_data, index, axis=0)  # index needs to be changed
+    train_data = np.vstack((train_data, new_train_data))  # traindata is old data + new data
+    val_data = np.delete(val_data, new_index, axis=0)  # delete materials chosen by al
+    # val_data = np.delete(val_data, index, axis=0)  # index needs to be changed
+
 
     # plot area
     # Energyhistogram
@@ -345,8 +311,8 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, max_al):
     plt.show()
     # Elementcount AL
     y_pos = np.arange(len(elementlabel)+2)
-    print(y_pos.shape, new_elementcount.shape, elementlabel)
-    plt.bar(y_pos, new_elementcount, align='center', alpha=0.5)
+    # print(y_pos.shape, elementcount.shape, elementlabel)
+    plt.bar(y_pos, elementcount, align='center', alpha=0.5)
     plt.xticks(y_pos, elementlabel)
     plt.ylabel('Count of Compounds')
     plt.title('Elements chosen by AL')
