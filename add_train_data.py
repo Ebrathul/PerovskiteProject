@@ -188,17 +188,13 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
     def get_new_data_bounderies(val_data, index, element_cap, random):
         # loop for generating new data AND
         # loop for finding witch materials are chosen
-        # new_train_data = np.asarray(val_data[index[0]])
         new_train_data = []
-        current_data = []
         new_index = []
         index_counter = 0
         materials_skipped = 0
         random_on_next_run = False
         print("len of elements", len(elements), "max per element", element_cap)
         while len(new_train_data) < trainsetaddition:
-            # for i in range(1, trainsetaddition):
-            # current_data = np.asarray(val_data[index[index_counter]])
             if random_on_next_run:
                 current_index = np.random.randint(index_counter, len(index))
                 print("Random addition on cap", current_index)
@@ -235,16 +231,9 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
                     new_train_data.append(val_data[current_index])
                     new_index.append(current_index)
                     index_counter += 1
-                    # new_train_data = np.vstack(new_train_data, current_data)
-                    # print("new traindata", len(new_train_data), index_counter)
-                    # new_train_data.append(val_data[index[i]])
-        # index = np.asarray(np.flip(np.argsort(std_p))[0:len(val_data_x)])
         new_train_data = np.asarray(new_train_data)
         new_index = np.asarray(new_index)
         print("new_train_data", new_train_data.shape, new_index.shape, index_counter)
-        # linestoclear = np.asarray(linestoclear)
-        # print("lines to clear", len(linestoclear), changecount)
-        # np.delete(index, linestoclear, axis=0)
         print("materials skipped", materials_skipped)
         return new_train_data, np.asarray(elemcountlist[:, 3]), new_index
     new_train_data, elementcount, new_index = get_new_data_bounderies(val_data, index, element_cap, fill_random)
@@ -262,7 +251,26 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
             all_new_data = np.load(open(log + "/run_" + str(logcount - 1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level-1) + "/" + "all_new_data.npy", 'rb'))
             all_new_data = np.vstack((new_train_data, all_new_data))
     else:
+        print("AL_level", al_level)
+        first_train_data = train_data.copy()
         all_new_data = new_train_data
+        # plot first random set
+        elemcountlist = np.zeros((len(elements) + 1, elemincompound + 1))
+        for i in range(1, len(elements)):
+            number, group, row = elements[i]
+            for j in range(len(first_train_data)):
+                for k in range(elemincompound):  # count of elements in compound
+                    if first_train_data[j, k] == i:
+                        elemcountlist[i, k] += 1
+                        elemcountlist[i, 3] += 1
+        y_pos = np.arange(len(elementlabel) + 2)
+        print(y_pos.shape, len(elementlabel))
+        plt.bar(y_pos, elemcountlist[:, 3], align='center', alpha=0.5)
+        plt.xticks(y_pos, elementlabel)
+        plt.ylabel('Count of Compounds')
+        plt.title('First Random Traindata')
+        plt.savefig(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/first_random_traindata.png")
+        plt.show()
 
 
     # loop for finding mean MAE one elements
