@@ -34,7 +34,7 @@ import pymatgen as mg
 import pymatgen.core.periodic_table as peri
 
 
-def add_train_data(trainsetaddition, NN_number, log, al_level, max_al):
+def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap):
     # global variables
     elemincompound = 3
     elements = generateElementdict()
@@ -43,7 +43,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, max_al):
         elementlabel.append(elements[i][0])
     elementstoprint = 20
     # elemcountlist = np.zeros((len(elements) + 1, elemincompound + 1))
-    element_cap = 100  # trainsetaddition  # max count of elements in new data
+    # element_cap = 100  # trainsetaddition  # max count of elements in new data
 
     # Save n Load
     model_checkpoint = 'NN_'  # name

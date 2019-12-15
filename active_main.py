@@ -4,10 +4,11 @@ from add_train_data import add_train_data
 import numpy as np
 import shutil
 
-al_steps = 15
+al_steps = 30
 NN_number = 3
 trainsetsize = 5000
 trainsetaddition = 500
+max_per_element = 50
 model_checkpoint = 'NN_'  # name
 log = 'active'
 name = log + "/NN_AL" + str(al_steps) + "a" + str(trainsetaddition) + "_start" + str(trainsetsize)
@@ -39,7 +40,7 @@ for i in range(al_steps):
             train(j, trainsetsize, log, 2000)
         else:
             train(j, trainsetsize, log, 500)  #  - (10*i))  # max_epoch reduced in each al step sqrt to reduce?
-    add_train_data(trainsetaddition, NN_number, log, i, al_steps)
+    add_train_data(trainsetaddition, NN_number, log, i, max_per_element)
 
 
 # move files to corresponding location
@@ -47,7 +48,7 @@ os.rename("traindata.npy", log + "/run_" + str(logcount) + "/traindata.npy")
 os.rename("valdata.npy", log + "/run_" + str(logcount) + "/valdata.npy")
 for i in range(NN_number):
     os.rename(model_checkpoint + str(i) + '.pt', log + "/run_" + str(logcount) + "/" + model_checkpoint + str(i) + '.pt')
-if os.path.isfile(log + "/NN_AL" + str(al_steps) + "a" + str(trainsetaddition) + "_start" + str(trainsetsize) + "traindata.npy" == False):
-    os.rename(log + "/run_" + str(logcount), log + "/NN_AL" + str(al_steps) + "a" + str(trainsetaddition) + "_start" + str(trainsetsize))  # or CNN ??????????????
+if os.path.isfile(log + "/NN_AL" + str(al_steps) + "a" + str(trainsetaddition) + "_max_per_ele" + str(max_per_element) + "_start" + str(trainsetsize) + "traindata.npy" == False):
+    os.rename(log + "/run_" + str(logcount), log + "/NN_AL" + str(al_steps) + "a" + str(trainsetaddition) + "_max_per_ele" + str(max_per_element) + "_start" + str(trainsetsize))  # or CNN ??????????????
 else:
-    print("not possible", log + "/run_" + str(logcount), log + "/NN_AL" + str(al_steps) + "a" + str(trainsetaddition))
+    print("not possible", log + "/run_" + str(logcount), log + "/run_" + str(logcount), log + "/NN_AL" + str(al_steps) + "a" + str(trainsetaddition) + "_max_per_ele" + max_per_element + "_start" + str(trainsetsize))
