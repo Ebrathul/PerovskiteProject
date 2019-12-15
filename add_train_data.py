@@ -34,7 +34,7 @@ import pymatgen as mg
 import pymatgen.core.periodic_table as peri
 
 
-def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap):
+def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill_random):
     # global variables
     elemincompound = 3
     elements = generateElementdict()
@@ -185,7 +185,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap):
     index = np.asarray(np.flip(np.argsort(std_p))[0:len(val_data_x)])
 
 
-    def get_new_data_bounderies(val_data, index, element_cap):
+    def get_new_data_bounderies(val_data, index, element_cap, random):
         # loop for generating new data AND
         # loop for finding witch materials are chosen
         # new_train_data = np.asarray(val_data[index[0]])
@@ -198,8 +198,14 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap):
         while len(new_train_data) < trainsetaddition:
             # for i in range(1, trainsetaddition):
             # current_data = np.asarray(val_data[index[index_counter]])
+            if random:
+               print("Random addition on cap", index.shape, len(index))
+               current_index = np.random.randint(index_counter, len(index))
+
+            else:
+                current_index = index[index_counter]
             current_data = new_train_data.copy()
-            current_data.append(val_data[index[index_counter]])
+            current_data.append(val_data[current_index])
             current_data_array = np.asarray(current_data)
             # print("val_data[index[index_counter]]", len(val_data[index[index_counter]]), index[index_counter], index_counter)
 
@@ -222,8 +228,8 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap):
                 # last step
                 if elemcountlist[len(elements)-1, 3] < element_cap and i == len(elements)-1:
                     # print("material appended")
-                    new_train_data.append(val_data[index[index_counter]])
-                    new_index.append(index[index_counter])
+                    new_train_data.append(val_data[current_index])
+                    new_index.append(current_index)
                     index_counter += 1
                     # new_train_data = np.vstack(new_train_data, current_data)
                     # print("new traindata", len(new_train_data), index_counter)
@@ -237,7 +243,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap):
         # np.delete(index, linestoclear, axis=0)
         print("materials skipped", materials_skipped)
         return new_train_data, np.asarray(elemcountlist[:, 3]), new_index
-    new_train_data, elementcount, new_index = get_new_data_bounderies(val_data, index, element_cap)
+    new_train_data, elementcount, new_index = get_new_data_bounderies(val_data, index, element_cap, fill_random)
 
     # for i in range(changecount):
     #     new_train_data = np.vstack((new_train_data, val_data[index[(trainsetaddition+changecount)]]))
