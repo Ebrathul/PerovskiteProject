@@ -211,8 +211,9 @@ def generateElementdict():
         """  # transition metals not working
 
         elementdict[i] = [peri.Element.from_Z(i),  # name
-                          mg.Element(peri.Element.from_Z(i)).group,  # group
-                          peri.Element(peri.Element.from_Z(i)).row  # row
+                            peri.Element.from_Z(i).number  # atomic number
+                          # mg.Element(peri.Element.from_Z(i)).group,  # group
+                          # peri.Element(peri.Element.from_Z(i)).row  # row
                         #   peri.Element.from_Z(i).X,  # Pauling electronegativity (none equals zero)
                         #   peri.Element.from_Z(i).number,  # atomic number
                         #   commonoxidationstate,  # common oxidation state if non set to zero

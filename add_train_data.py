@@ -63,8 +63,8 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
     # print("val data_x shape and ex:", val_data_x.shape, val_data_x[0])
 
     # for CNN
-    # size = val_data_x.shape
-    # val_data_x = val_data_x.reshape((size[0], 1, size[1]))
+    size = val_data_x.shape
+    val_data_x = val_data_x.reshape((size[0], 1, size[1]))
     # print("val data shape and ex:", val_data_x.shape, val_data_x[0])
 
 
@@ -78,91 +78,91 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
 
     # Sequential net, structure and functions
     # Working NOT conv NN
-    model = nn.Sequential(
-        nn.Linear(D_in, H1),
-        nn.LeakyReLU(),
-        nn.Linear(H1, H2),
-        nn.LeakyReLU(),
-        nn.Linear(H2, H3),
-        nn.Tanh(),
-        nn.Linear(H3, D_out),
-    )  # lr:0.1
-
     # model = nn.Sequential(
-    #     # wrapped(),
-    #
-    #     # nn.Conv1d(1, 25, 2, stride=1, padding=1, dilation=1, groups=1, bias=True),
-    #     # nn.ELU(),
-    #     #
-    #     # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     # nn.Conv1d(25, 25, 2, stride=1, padding=1, dilation=1, groups=1, bias=True),
-    #     # nn.ELU(),
-    #     #
-    #     # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     # nn.Conv1d(25, 25, 2, stride=1, padding=1, dilation=1, groups=1, bias=True),
-    #     # nn.ELU(),
-    #
-    #     # nn.Dropout(0.1),
-    #     # nn.AvgPool1d(2),
-    #
-    #     # torch.nn.BatchNorm1d(1, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     nn.Conv1d(1, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
-    #     # in_channels, out_channels, kernel_size
-    #     nn.ELU(),
-    #
-    #     torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     nn.Conv1d(20, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
-    #     # in_channels, out_channels, kernel_size
-    #     nn.ELU(),
-    #
-    #     nn.Dropout(0.1),
-    #     # nn.MaxPool1d(3),
-    #
-    #     torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     nn.Conv1d(20, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
-    #     # in_channels, out_channels, kernel_size
-    #     nn.ELU(),
-    #
-    #     torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     nn.Conv1d(20, 25, 5, stride=1, padding=2, dilation=2, groups=1, bias=True),
-    #     nn.ELU(),
-    #
-    #     torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
-    #     nn.Dropout(0.1),
-    #     # testarea
-    #     nn.ELU(),
-    #
-    #     nn.Dropout(0.01),
-    #
-    #     torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
-    #     nn.ELU(),
-    #     # print("1"),
-    #     nn.Dropout(0.05),
-    #     nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
-    #     nn.ELU(),
-    #
-    #     torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
-    #     # print("2"),
-    #     # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     # nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=4, groups=1, bias=True),
-    #     # print("3"),
-    #     # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-    #     # nn.Conv1d(25, 25, 3, stride=2, padding=2, dilation=2, groups=1, bias=True),
-    #     nn.ELU(),
-    #
-    #     # nn.AvgPool1d(3),
-    #     nn.ELU(),
-    #     flatten(),
-    #     nn.Dropout(0.01),
-    #     nn.Linear(150, H2),
-    #     nn.ELU(),
+    #     nn.Linear(D_in, H1),
+    #     nn.LeakyReLU(),
+    #     nn.Linear(H1, H2),
+    #     nn.LeakyReLU(),
     #     nn.Linear(H2, H3),
     #     nn.Tanh(),
-    #     nn.Linear(H3, D_out)
-    # )
+    #     nn.Linear(H3, D_out),
+    # )  # lr:0.1
+
+    model = nn.Sequential(
+        # wrapped(),
+
+        # nn.Conv1d(1, 25, 2, stride=1, padding=1, dilation=1, groups=1, bias=True),
+        # nn.ELU(),
+        #
+        # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        # nn.Conv1d(25, 25, 2, stride=1, padding=1, dilation=1, groups=1, bias=True),
+        # nn.ELU(),
+        #
+        # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        # nn.Conv1d(25, 25, 2, stride=1, padding=1, dilation=1, groups=1, bias=True),
+        # nn.ELU(),
+
+        # nn.Dropout(0.1),
+        # nn.AvgPool1d(2),
+
+        # torch.nn.BatchNorm1d(1, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(1, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
+        # in_channels, out_channels, kernel_size
+        nn.ELU(),
+
+        torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(20, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
+        # in_channels, out_channels, kernel_size
+        nn.ELU(),
+
+        nn.Dropout(0.1),
+        # nn.MaxPool1d(3),
+
+        torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(20, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
+        # in_channels, out_channels, kernel_size
+        nn.ELU(),
+
+        torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(20, 25, 5, stride=1, padding=2, dilation=2, groups=1, bias=True),
+        nn.ELU(),
+
+        torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
+        nn.Dropout(0.1),
+        # testarea
+        nn.ELU(),
+
+        nn.Dropout(0.01),
+
+        torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
+        nn.ELU(),
+        # print("1"),
+        nn.Dropout(0.05),
+        nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
+        nn.ELU(),
+
+        torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
+        # print("2"),
+        # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        # nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=4, groups=1, bias=True),
+        # print("3"),
+        # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        # nn.Conv1d(25, 25, 3, stride=2, padding=2, dilation=2, groups=1, bias=True),
+        nn.ELU(),
+
+        # nn.AvgPool1d(3),
+        nn.ELU(),
+        flatten(),
+        nn.Dropout(0.01),
+        nn.Linear(825, H2),
+        nn.ELU(),
+        nn.Linear(H2, H3),
+        nn.Tanh(),
+        nn.Linear(H3, D_out)
+    )
 
     # prediction of ensemble
     predictions = np.zeros((NN_number, len(val_data)))
@@ -304,8 +304,8 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
     print("count for each element", elementcount)  # counts how often each element was chosen
     elements_not_used = []
     print("Elements not used")
-    for i in range(elementcount):
-        if elementcount == 0 and i<0:
+    for i in range(len(elementcount)):
+        if elementcount == 0 and i > 0:
             elements_not_used.append(i)
             print(elements[i][0], i)
     elements_not_used = np.asarray(elements_not_used)
