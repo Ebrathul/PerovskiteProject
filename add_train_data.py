@@ -305,7 +305,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
     elements_not_used = []
     print("Elements not used")
     for i in range(len(elementcount)):
-        if elementcount == 0 and i > 0:
+        if elementcount[i] == 0 and i > 0:
             elements_not_used.append(i)
             print(elements[i][0], i)
     elements_not_used = np.asarray(elements_not_used)
