@@ -73,8 +73,8 @@ def train(NN_index, trainsetsize, log, max_epoch):
     train_set, val_set = PerovskiteDataset(train_data), PerovskiteDataset(val_data)
 
     # Variable batch and set loader
-    train_batchsize = 500
-    val_batchsize = len(val_data)  # 231472  # all or small like 2000 ?
+    train_batchsize = 1000
+    val_batchsize = 10000  # len(val_data)  # 231472  # all or small like 2000 ?
     train_loader, val_loader = DataLoader(train_set, batch_size=train_batchsize, shuffle=True, drop_last=False), \
                                DataLoader(val_set, batch_size=val_batchsize, drop_last=True)  # shuffle=True
 
@@ -99,63 +99,63 @@ def train(NN_index, trainsetsize, log, max_epoch):
     #     nn.Linear(H3, D_out),
     # )  # lr:0.1
 
+    # CNN Variable
+    channel_size = 12
+
     model = nn.Sequential(
-        # wrapped(),
+        wrapped(),
 
         # nn.Conv1d(1, 25, 2, stride=1, padding=1, dilation=1, groups=1, bias=True),
-        # nn.ELU(),
-        #
-        # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-        # nn.Conv1d(25, 25, 2, stride=1, padding=1, dilation=1, groups=1, bias=True),
-        # nn.ELU(),
-        #
-        # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-        # nn.Conv1d(25, 25, 2, stride=1, padding=1, dilation=1, groups=1, bias=True),
         # nn.ELU(),
 
         # nn.Dropout(0.1),
         # nn.AvgPool1d(2),
 
         # torch.nn.BatchNorm1d(1, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-        nn.Conv1d(1, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
+        nn.Conv1d(1, channel_size, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
         # in_channels, out_channels, kernel_size
         nn.ELU(),
 
-        torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-        nn.Conv1d(20, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
+        torch.nn.BatchNorm1d(channel_size, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(channel_size, channel_size, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
         # in_channels, out_channels, kernel_size
         nn.ELU(),
+
 
         nn.Dropout(0.1),
         # nn.MaxPool1d(3),
 
-        torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-        nn.Conv1d(20, 20, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
+        torch.nn.BatchNorm1d(channel_size, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(channel_size, channel_size, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
         # in_channels, out_channels, kernel_size
         nn.ELU(),
 
-        torch.nn.BatchNorm1d(20, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-        nn.Conv1d(20, 25, 5, stride=1, padding=2, dilation=2, groups=1, bias=True),
+        torch.nn.BatchNorm1d(channel_size, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(channel_size, channel_size, 5, stride=1, padding=2, dilation=2, groups=1, bias=True),
         nn.ELU(),
 
-        torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-        nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
-        nn.Dropout(0.1),
-        # testarea
+        torch.nn.BatchNorm1d(channel_size, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(channel_size, channel_size, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
         nn.ELU(),
+
+        nn.Dropout(0.1),
+
 
         nn.Dropout(0.01),
 
-        torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-        nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
+        torch.nn.BatchNorm1d(channel_size, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(channel_size, channel_size, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
         nn.ELU(),
         # print("1"),
         nn.Dropout(0.05),
-        nn.Conv1d(25, 25, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
+
+        torch.nn.BatchNorm1d(channel_size, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(channel_size, channel_size, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
         nn.ELU(),
 
-        torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-        nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
+
+        torch.nn.BatchNorm1d(channel_size, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+        nn.Conv1d(channel_size, channel_size, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
         # print("2"),
         # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
         # nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=4, groups=1, bias=True),
@@ -168,7 +168,7 @@ def train(NN_index, trainsetsize, log, max_epoch):
         nn.ELU(),
         flatten(),
         nn.Dropout(0.01),
-        nn.Linear(825, H2),
+        nn.Linear(420, H2),
         nn.ELU(),
         nn.Linear(H2, H3),
         nn.Tanh(),
@@ -217,8 +217,9 @@ def train(NN_index, trainsetsize, log, max_epoch):
     if (os.path.isfile(model_checkpoint + str(NN_index) + '.pt')):
         print("NN: ", NN_index, "loaded")
         checkpoint = torch.load(model_checkpoint + str(NN_index) + '.pt')
-        model.load_state_dict(checkpoint['model_state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        # try to load only optimizer
+        # model.load_state_dict(checkpoint['model_state_dict'])
+        # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     else:
         print("model not loaded!")
 
