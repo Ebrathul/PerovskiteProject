@@ -65,7 +65,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
     # for CNN
     size = val_data_x.shape
     val_data_x = val_data_x.reshape((size[0], 1, size[1]))
-    # print("val data shape and ex:", val_data_x.shape, val_data_x[0])
+    print("val data shape and ex:", val_data_x.shape, val_data_x[0])
 
 
     # netvariabeles
@@ -173,7 +173,18 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
             checkpoint = torch.load(model_checkpoint + str(NN_index) + '.pt')
             model.load_state_dict(checkpoint['model_state_dict'])
 
-            predictions[NN_index] = model(torch.tensor(val_data_x)).detach().cpu().numpy().reshape(len(val_data_x),)
+            splitsize = 10000
+            endintervall = 0
+            while endintervall < len(val_data_x):
+                beginintervall = endintervall
+                endintervall += splitsize
+                if endintervall >= len(val_data_x):
+                    endintervall = len(val_data_x)
+                val_data_x_slice = val_data_x[beginintervall:endintervall]
+                print("begin and end", beginintervall, endintervall)
+                # print("val data slice shape and ex:", val_data_x_slice.shape, len(val_data_x_slice), val_data_x[0])
+                predictions[NN_index, beginintervall:endintervall] = model(torch.tensor(val_data_x_slice)).detach().cpu().numpy().reshape(len(val_data_x_slice), )
+            # predictions[NN_index] = model(torch.tensor(val_data_x)).detach().cpu().numpy().reshape(len(val_data_x),)
         else:
             print('model not available')
 
@@ -258,7 +269,9 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
         # plot first random set
         elemcountlist = np.zeros((len(elements) + 1, elemincompound + 1))
         for i in range(1, len(elements)):
-            number, group, row = elements[i]
+            print("Element i", elements[i], len(elements[i]))
+            element_i = elements[i]
+            number, group, row = element_i[1:4]
             for j in range(len(first_train_data)):
                 for k in range(elemincompound):  # count of elements in compound
                     if first_train_data[j, k] == i:
@@ -283,7 +296,9 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
             elementlabel.append(elements[i][0])
         elemMAE = np.zeros((len(elements) + 1, 2))
         for i in range(1, len(elements)):
-            number, group, row = elements[i]
+            element_i = elements[i]
+            number, group, row = element_i[1:4]
+            # number, group, row = elements[i]
             # print("number, group, row", number, group, row)
             for j in range(len(val_data_x)):
                 for k in range(elemincompound):  # count of elements in compound
@@ -349,7 +364,9 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
     if al_level > 0:
         elemcountlist = np.zeros((len(elements) + 1, elemincompound + 1))
         for i in range(1, len(elements)):
-            number, group, row = elements[i]
+            # number, group, row = elements[i]
+            element_i = elements[i]
+            number, group, row = element_i[1:4]
             for j in range(len(all_new_data)):
                 for k in range(elemincompound):  # count of elements in compound
                     if all_new_data[j, k] == i:

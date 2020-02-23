@@ -5,7 +5,7 @@ import numpy as np
 import shutil
 
 al_steps = 30
-NN_number = 7
+NN_number = 10
 trainsetsize = 5000
 trainsetaddition = 500
 max_per_element = 75
