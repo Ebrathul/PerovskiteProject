@@ -26,6 +26,7 @@ from perovskite_classes import get_mean_stndev, getRandomSets, PerovskiteDataset
 from perovskite_classes import flatten, wrapped, create_dataset
 from perovskite_classes import prepare_batch_conv as prepare_batch  # _conv
 from perovskite_classes import generateData
+from perovskite_classes import get_NN, get_CNN
 from ignite.engine.engine import Engine, State, Events
 from ignite.utils import convert_tensor
 from torchvision import transforms
@@ -78,102 +79,8 @@ def train(NN_index, trainsetsize, log, max_epoch):
     train_loader, val_loader = DataLoader(train_set, batch_size=train_batchsize, shuffle=True, drop_last=False), \
                                DataLoader(val_set, batch_size=val_batchsize, drop_last=True)  # shuffle=True
 
-    # Netsizevariables
-    D_in = int(feattotal)
-    D_out = 1
-    H1 = 20
-    H2 = 64
-    H3 = 7
-    # H6 = 10
-
-
-    # Sequential net, structure and functions
-    # Working NOT conv NN
-    # model = nn.Sequential(
-    #     nn.Linear(D_in, H1),
-    #     nn.LeakyReLU(),
-    #     nn.Linear(H1, H2),
-    #     nn.LeakyReLU(),
-    #     nn.Linear(H2, H3),
-    #     nn.Tanh(),
-    #     nn.Linear(H3, D_out),
-    # )  # lr:0.1
-
-    # CNN Variable
-    channel_size = 12
-
-    model = nn.Sequential(
-        wrapped(),
-
-        # nn.Conv1d(1, 25, 2, stride=1, padding=1, dilation=1, groups=1, bias=True),
-        # nn.ELU(),
-
-        # nn.Dropout(0.1),
-        # nn.AvgPool1d(2),
-
-        # torch.nn.BatchNorm1d(1, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-        nn.Conv1d(1, channel_size, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
-        # in_channels, out_channels, kernel_size
-        nn.ELU(),
-
-        torch.nn.BatchNorm1d(channel_size, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-        nn.Conv1d(channel_size, channel_size, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
-        # in_channels, out_channels, kernel_size
-        nn.ELU(),
-
-
-        nn.Dropout(0.1),
-        # nn.MaxPool1d(3),
-
-        torch.nn.BatchNorm1d(channel_size, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-        nn.Conv1d(channel_size, channel_size, 3, stride=1, padding=1, dilation=1, groups=1, bias=True),
-        # in_channels, out_channels, kernel_size
-        nn.ELU(),
-
-        torch.nn.BatchNorm1d(channel_size, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-        nn.Conv1d(channel_size, channel_size, 5, stride=1, padding=2, dilation=2, groups=1, bias=True),
-        nn.ELU(),
-
-        torch.nn.BatchNorm1d(channel_size, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-        nn.Conv1d(channel_size, channel_size, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
-        nn.ELU(),
-
-        nn.Dropout(0.1),
-
-
-        nn.Dropout(0.01),
-
-        torch.nn.BatchNorm1d(channel_size, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-        nn.Conv1d(channel_size, channel_size, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
-        nn.ELU(),
-        # print("1"),
-        nn.Dropout(0.05),
-
-        torch.nn.BatchNorm1d(channel_size, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-        nn.Conv1d(channel_size, channel_size, 5, stride=1, padding=3, dilation=1, groups=1, bias=True),
-        nn.ELU(),
-
-
-        torch.nn.BatchNorm1d(channel_size, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-        nn.Conv1d(channel_size, channel_size, 3, stride=1, padding=2, dilation=2, groups=1, bias=True),
-        # print("2"),
-        # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-        # nn.Conv1d(25, 25, 3, stride=1, padding=2, dilation=4, groups=1, bias=True),
-        # print("3"),
-        # torch.nn.BatchNorm1d(25, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
-        # nn.Conv1d(25, 25, 3, stride=2, padding=2, dilation=2, groups=1, bias=True),
-        nn.ELU(),
-
-        # nn.AvgPool1d(3),
-        nn.ELU(),
-        flatten(),
-        nn.Dropout(0.01),
-        nn.Linear(420, H2),
-        nn.ELU(),
-        nn.Linear(H2, H3),
-        nn.Tanh(),
-        nn.Linear(H3, D_out)
-    )
+    # model = get_NN(feattotal)
+    model = get_CNN(feattotal)
 
     # Shape for saving netstucture
     modelform = str(model)
