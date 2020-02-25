@@ -4,11 +4,11 @@ from add_train_data import add_train_data
 import numpy as np
 import shutil
 
-al_steps = 30
+al_steps = 15
 NN_number = 10
 trainsetsize = 5000
-trainsetaddition = 500
-max_per_element = 70
+trainsetaddition = 1000
+max_per_element = 100
 fill_random = False
 if fill_random:
     random_str = "True"

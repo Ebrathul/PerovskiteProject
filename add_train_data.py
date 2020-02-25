@@ -31,6 +31,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
     for i in range(1, len(elements)):
         elementlabel.append(elements[i][0])
     elementstoprint = 20
+    highest_element = 83
     # elemcountlist = np.zeros((len(elements) + 1, elemincompound + 1))
     # element_cap = 100  # trainsetaddition  # max count of elements in new data
 
@@ -43,18 +44,18 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
     # load data
     train_data = np.load(open('traindata.npy', 'rb'))
     val_data = np.load(open('valdata.npy', 'rb'))
-    print("val data shape and ex:", val_data.shape, val_data[0])
+    # print("val data shape and ex:", val_data.shape, val_data[0])
 
     mean, stnddev = get_mean_stndev(train_data)
 
     # normalization
     val_data_x = (val_data[:, 1::] - mean[1::]) / stnddev[1::]
-    print("val data_x shape and ex:", val_data_x.shape, val_data_x[0])
+    # print("val data_x shape and ex:", val_data_x.shape, val_data_x[0])
 
     # for CNN
     size = val_data_x.shape
     val_data_x = val_data_x.reshape((size[0], 1, size[1]))
-    print("val data shape and ex:", val_data_x.shape, val_data_x[0])
+    # print("val data shape and ex:", val_data_x.shape, val_data_x[0])
 
 
     # netvariabeles
@@ -87,37 +88,47 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
 
 
     # plot area
+
+
     # Energyhistogram
     n, bins, _ = plt.hist(new_train_data[:, 0], 100)
     plt.title('Energyhistogram of AL chosen data')
     plt.savefig(log + "/run_" + str(logcount - 1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/energydistr.png")
     plt.show()
+
+
     # Elements MAE
     # y_pos = np.arange(len(elementlabel)+2)
-    y_pos = np.arange(83)
-    plt.bar(elemMAE[1:, 1], elemMAE[1:, 0], align='center', alpha=0.5)
+    y_pos = np.arange(highest_element)
+    plt.bar(elemMAE[1:highest_element + 1, 1], elemMAE[1:highest_element + 1, 0], align='center', alpha=0.5)
     plt.xticks(y_pos, elementlabel[:83])
     plt.ylabel('Elements MAE meV')
     plt.title('Elements MAE')
     plt.savefig(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/elemMAE.png")
     plt.show()
 
+
     # write mae of elements to csv file for PSE generation
     with open(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + '/PSE.csv', 'w', newline='') as csvfile:
         element_writer = csv.writer(csvfile, delimiter=',')  # , quotechar='|', qouting=csv.QOUTE_MINIMAL)
-        for i in range(83):
-            element_writer.writerow([elementlabel[i], elemMAE[i, 0]])
+        print("CSV:")
+        print(elementlabel, len(elementlabel))
+        print(elemMAE[:, 0], elemMAE[1:, 0], elemMAE.shape)
+        for i in range(highest_element):
+            element_writer.writerow([elementlabel[i], elemMAE[i+1, 0]])
 
 
     # Elementcount AL
-    y_pos = np.arange(len(elementlabel)+2)
+    y_pos = np.arange(highest_element)
     # print(y_pos.shape, elementcount.shape, elementlabel)
-    plt.bar(y_pos, elementcount, align='center', alpha=0.5)
+    plt.bar(y_pos, elementcount[1:highest_element + 1], align='center', alpha=0.5)
     plt.xticks(y_pos, elementlabel)
     plt.ylabel('Count of Compounds')
     plt.title('Elements chosen by AL')
     plt.savefig(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/elem_in_addtrain.png")
     plt.show()
+
+
     # All new data
     if al_level > 0:
         elemcountlist = np.zeros((len(elements) + 1, elemincompound + 1))
@@ -130,16 +141,18 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
                     if all_new_data[j, k] == i:
                         elemcountlist[i, k] += 1
                         elemcountlist[i, 3] += 1
-        y_pos = np.arange(len(elementlabel) + 2)
+
+
+        y_pos = np.arange(highest_element)  # np.arange(len(elementlabel) + 2)
         print(y_pos.shape, len(elementlabel))
-        plt.bar(y_pos, elemcountlist[:, 3], align='center', alpha=0.5)
-        plt.xticks(y_pos, elementlabel)
+        plt.bar(y_pos, elemcountlist[1:highest_element + 1, 3], align='center', alpha=0.5)
+        plt.xticks(y_pos, elementlabel[:highest_element])
         plt.ylabel('Count of Compounds')
         plt.title('All Elements chosen by AL')
         plt.savefig(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/all_elem_in_addtrain.png")
         plt.show()
 
-
+    # save everything
     np.save(open(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/new_data.npy", 'wb'), new_train_data, allow_pickle=True)
     np.save(open(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/traindata.npy", 'wb'), train_data, allow_pickle=True)
     np.save(open(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/valdata.npy", 'wb'), val_data, allow_pickle=True)

@@ -390,10 +390,11 @@ def save_newdata_firstdata(train_data, new_train_data, al_level, logcount, log, 
                     if first_train_data[j, k] == i:
                         elemcountlist[i, k] += 1
                         elemcountlist[i, 3] += 1
-        y_pos = np.arange(len(elementlabel) + 2)
+        # y_pos = np.arange(len(elementlabel) + 2)
+        y_pos = np.arange(83)
         print(y_pos.shape, len(elementlabel))
-        plt.bar(y_pos, elemcountlist[:, 3], align='center', alpha=0.5)
-        plt.xticks(y_pos, elementlabel)
+        plt.bar(y_pos, elemcountlist[1:84, 3], align='center', alpha=0.5)
+        plt.xticks(y_pos, elementlabel[:83])
         plt.ylabel('Count of Compounds')
         plt.title('First Random Traindata')
         plt.savefig(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/first_random_traindata.png")
