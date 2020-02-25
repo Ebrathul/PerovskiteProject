@@ -109,7 +109,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
 
 
     # write mae of elements to csv file for PSE generation
-    with open(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + '/PSE.csv', 'w', newline='') as csvfile:
+    with open(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + '/ElementMAE.csv', 'w', newline='') as csvfile:
         element_writer = csv.writer(csvfile, delimiter=',')  # , quotechar='|', qouting=csv.QOUTE_MINIMAL)
         print("CSV:")
         print(elementlabel, len(elementlabel))
@@ -127,6 +127,16 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
     plt.title('Elements chosen by AL')
     plt.savefig(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/elem_in_addtrain.png")
     plt.show()
+
+
+    # write count of elements to csv file for PSE generation
+    with open(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + '/Elementcount.csv', 'w', newline='') as csvfile:
+        element_writer = csv.writer(csvfile, delimiter=',')  # , quotechar='|', qouting=csv.QOUTE_MINIMAL)
+        print("CSV:")
+        print(elementlabel, len(elementlabel))
+        print(elementcount[:], elementcount[0], elementcount.shape)
+        for i in range(highest_element):
+            element_writer.writerow([elementlabel[i], elementcount[i+1]])
 
 
     # All new data

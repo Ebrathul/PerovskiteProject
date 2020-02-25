@@ -457,8 +457,6 @@ def find_elements_not_used(elementcount, elements, elementstoprint):
 
 
 
-
-
 def get_NN(feattotal):
     # Netsizevariables
     D_in = int(feattotal)

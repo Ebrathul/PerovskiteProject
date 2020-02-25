@@ -8,7 +8,7 @@ al_steps = 15
 NN_number = 10
 trainsetsize = 5000
 trainsetaddition = 1000
-max_per_element = 100
+max_per_element = 200
 fill_random = False
 if fill_random:
     random_str = "True"
