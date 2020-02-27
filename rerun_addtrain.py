@@ -27,20 +27,29 @@ from perovskite_classes import flatten, wrapped, create_dataset, generateElement
 from perovskite_classes import prepare_batch_conv as prepare_batch  # _conv
 from perovskite_classes import generateData
 from perovskite_classes import get_NN, get_CNN
-from perovskite_classes import predict_MAE
-from ignite.engine.engine import Engine, State, Events
-from ignite.utils import convert_tensor
-from torchvision import transforms
+from perovskite_classes import predict_MAE, get_new_data_bounderies, save_newdata_firstdata, get_mae_per_elem, find_elements_not_used
 import matplotlib.pyplot as plt
-import pymatgen as mg
-import pymatgen.core.periodic_table as peri
+import csv
 
 
-def rerun_add_train_data(trainsetaddition, NN_number, log, al_level, name):
+
+def rerun_add_train_data(trainsetaddition, NN_number, log, al_level, name):  # name as location of files
+    print("Rerunning calculation:", name, al_level)
     # Save n Load
     model_checkpoint = 'NN_'  # name
+    # global variables
+    elemincompound = 3
+    elements = generateElementdict()
+    elementlabel = []
+    for i in range(1, len(elements)):
+        elementlabel.append(elements[i][0])
+    elementstoprint = 20
+    highest_element = 83
+    fill_random = False
+    # elemcountlist = np.zeros((len(elements) + 1, elemincompound + 1))
+    element_cap = 100  # trainsetaddition  # max count of elements in new data
 
-    logcount = 0
+    logcount = 1
     # al_level = 0
     # while (os.access(log + "/run_" + str(logcount), os.F_OK) == True):  # +str(NN_index)
     #     logcount += 1
@@ -51,30 +60,33 @@ def rerun_add_train_data(trainsetaddition, NN_number, log, al_level, name):
     # load data
     data = np.load(open("data11.npy", "rb"))
     train_data = np.load(open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/" + "traindata.npy", 'rb'))
-    data = np.vstack((data, train_data))
+    new_train_data = np.load(open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/new_data.npy", 'rb'), allow_pickle=True)
+
+    real_train_data = np.vstack((train_data, new_train_data))
+    real_train_data, index = np.unique(real_train_data, axis=0, return_counts=True)
+    real_train_data = np.delete(real_train_data, np.nonzero(index > 1)[0], axis=0)
+
+    data = np.vstack((data, real_train_data))
     data, index = np.unique(data, axis=0, return_counts=True)
     val_data = np.delete(data, np.nonzero(index > 1)[0], axis=0)
-    new_train_data = np.load(open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/new_data.npy", 'rb'), allow_pickle=True)
-    train_data = np.load(open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/traindata.npy", 'rb'), allow_pickle=True)
-    val_data = np.load(open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/valdata.npy", 'rb'), allow_pickle=True)
-    all_new_data = np.load(open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/all_new_data.npy", 'rb'), allow_pickle=True)
 
-    # print("nonzero", np.nonzero(index > 1), np.nonzero(index > 1)[0].shape)
-    # print("Shape of all data", data.shape, train_data.shape, val_data.shape, index.shape)
+    val_data = np.vstack((data, new_train_data))
+
+    print("nonzero", np.nonzero(index > 1), np.nonzero(index > 1)[0].shape)
+    print("Shape of all data", data.shape, train_data.shape, val_data.shape, index.shape, new_train_data.shape, real_train_data.shape)
     # val_data = np.load(open(log + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/" + "valdata.npy", 'rb'))
-    # print("val data shape and ex:", val_data.shape, val_data[0])
+    print("val data shape and ex:", val_data.shape, val_data[0])
 
-
-    mean, stnddev = get_mean_stndev(train_data)
+    mean, stnddev = get_mean_stndev(real_train_data)
 
     # normalization
     val_data_x = (val_data[:, 1::] - mean[1::]) / stnddev[1::]
-    # print("val data_x shape and ex:", val_data_x.shape, val_data_x[0])
+    print("val data_x shape and ex:", val_data_x.shape, val_data_x[0])
 
     # for CNN
     size = val_data_x.shape
     val_data_x = val_data_x.reshape((size[0], 1, size[1]))
-    # print("val data shape and ex:", val_data_x.shape, val_data_x[0])
+    print("val data_x shape and ex:", val_data_x.shape, val_data_x[0])
 
     # netvariabeles
     feattotal = int(val_data_x.shape[1])
@@ -82,168 +94,117 @@ def rerun_add_train_data(trainsetaddition, NN_number, log, al_level, name):
     # model = get_NN(feattotal)
     model = get_CNN(feattotal)
 
-    # predictions = np.zeros((NN_number, len(val_data)))
-    # for NN_index in range(NN_number):
-    #     if (os.path.isfile(log + "/" + name + "/" + model_checkpoint + str(NN_index) + "/al_" + str(al_level) + "/" + model_checkpoint + str(NN_index) + '.pt')):
-    #         print("NN: ", NN_index, "loaded")
-    #         checkpoint = torch.load(log + "/" + name + "/" + model_checkpoint + str(NN_index) + "/al_" + str(al_level) + "/" + model_checkpoint + str(NN_index) + '.pt')
-    #         model.load_state_dict(checkpoint['model_state_dict'])
-    #         # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    #         # model.load_state_dict(torch.load(model_checkpoint + str(NN_index) + '.pt', map_location="gpu"))
-    #         # max_epoch = 1000  # imprtance?
-    #
-    #         predictions[NN_index] = model(torch.tensor(val_data_x).float()).detach().cpu().numpy().reshape(len(val_data_x),)
-    #     else:
-    #         print('model not available')
-    #     # predictions[i] = np.append(predictions[i], model(val_data_x), axis=0)
-    #
-    # mae = np.zeros(len(val_data_x))
-    # # mean_p = np.mean(predictions, axis=0) * stnddev[0]
-    # # print("mean_p val_data stnddev[0] shape:", mean_p.shape, val_data.shape, stnddev[0].shape)
-    # for i in range(NN_number):
-    #     mae += np.abs((predictions[i, :] * stnddev[0] + mean[0]) - val_data[:, 0])
-    # mae = mae / NN_number
-    # print(np.mean(mae), mae.shape)
-    # std_p = np.std(predictions, axis=0)
-    # print(std_p.shape)
-    #
-    # index = np.flip(np.argsort(std_p))[0:trainsetaddition]
+    mae, mae_predicted, index = predict_MAE(NN_number, val_data, val_data_x, stnddev, mean, model, (log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + '/' + model_checkpoint))
 
-    mae, mae_predicted, index = predict_MAE(NN_number, val_data, val_data_x, stnddev, mean, model, model_checkpoint)
+    # find new data and witch materials are chosen
+    train_data, elementcount, new_index = get_new_data_bounderies(val_data, elements, trainsetaddition, elemincompound, index, element_cap, fill_random)
 
-    new_train_data = []
+    # save
 
-    for i in range(len(index)):
-        new_train_data.append(val_data[index[i]])
-    new_train_data = np.asarray(new_train_data)
+    if os.path.isfile(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) +  "/all_new_data.npy" == True):
+        all_new_data = np.load(open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/all_new_data.npy", 'rb'), allow_pickle=True)
+    else:
+        all_new_data = save_newdata_firstdata(train_data, new_train_data, al_level, logcount, log, elements, elemincompound, elementlabel, name + "/" + model_checkpoint)
 
+    # mae per elem
+    elemMAE = get_mae_per_elem(mae, val_data, val_data_x)
+
+    elements_not_used = find_elements_not_used(elementcount, elements, elementstoprint)
+
+    # load train and val data with chosen
+    train_data = np.load(open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/traindata.npy", 'rb'), allow_pickle=True)
+    # val_data = np.load(open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/valdata.npy", 'rb'), allow_pickle=True)
+
+    # plot area
+
+    # Energyhistogram
     n, bins, _ = plt.hist(new_train_data[:, 0], 100)
+    plt.title('Energyhistogram of AL chosen data')
     plt.savefig(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/energydistr.png")
     plt.show()
 
-    np.save(open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/traindata.npy", 'wb'), train_data, allow_pickle=True)
-    train_data = np.vstack((train_data, new_train_data))
 
-    # print(train_data[])
-    # print(train_data.shape)
-    # n, bins, _ = plt.hist(train_data[:, 0], 50)
-    # plt.show()
-
-
-    # loop for finding mean MAE one elements
-    elemincompound = 3
-    elements = generateElementdict()
-    elementlabel = []
-    number = 0
-    # print(elements[1], len(elements))
-    featperelem = 11
-    elemMAE = np.zeros((len(elements) + 1, 2))
-    # np.delete(elemMAE, 0, axis=0)
-    # np.delete(elemMAE, len(elemMAE), 0)
-    print("MAE of each Element")
-    for i in range(1, len(elements)):
-        number, group, row = elements[i]
-        elementlabel.append(elements[i][0])
-        # print("number, group, row", number, group, row)
-        for j in range(len(val_data_x)):
-            for k in range(elemincompound):  # count of elements in compound
-                if i == int(val_data[j, k]):  # 0, 1, 2 are atomic numbers
-                    elemMAE[i, 0] += mae[i]
-                    elemMAE[i, 1] += 1
-        if elemMAE[i, 1] != 0:
-            elemMAE[i, 0] = elemMAE[i, 0] / elemMAE[i, 1]
-            elemMAE[i, 1] = i
-            print(elements[i][0], elemMAE[i, 0], elemMAE[i, 1])
-        else:
-            print(elements[i][0], "division by zero")
-            elemMAE[i, 0] = 0
-    # n, bins, _ = plt.hist(elemMAE[:, 0], 100)
-    # plt.show()
-
-
-    y_pos = np.arange(len(elementlabel)+2)
-    # print("Len of elementlist", len(elementlabel))
-    # print("shape of elemMAE", elemMAE[:, 0].shape, elemMAE[:, 0])
-    plt.bar(elemMAE[:, 1], elemMAE[:, 0], align='center', alpha=0.5)
-    plt.xticks(y_pos, elementlabel)
+    # Elements MAE
+    # y_pos = np.arange(len(elementlabel)+2)
+    y_pos = np.arange(highest_element)
+    plt.bar(elemMAE[1:highest_element + 1, 1], elemMAE[1:highest_element + 1, 0], align='center', alpha=0.5)
+    plt.xticks(y_pos, elementlabel[:83])
     plt.ylabel('Elements MAE meV')
-    plt.title('Elements')
-    plt.savefig(log + "/" + name + "/" + model_checkpoint + str(NN_index) + "/al_" + str(al_level) + "/elemMAE.png")
+    plt.title('Elements MAE')
+    plt.savefig(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/elemMAE.png")
     plt.show()
 
 
-    # loop for finding witch materials are chosen
-    # materials = []
-    elemcountlist = np.zeros((len(elements) + 1, elemincompound + 1))
-    elementstoprint = 10
-    featperelem = 2
-    for i in range(1, len(elements)):
-        number, group, row = elements[i]
-        for j in range(trainsetaddition):
-            for k in range(elemincompound):  # count of elements in compound
-                if new_train_data[j, k] == i:
-                    # materials[j].append(elements[i][0])
-                    elemcountlist[i, k] += 1
-                    elemcountlist[i, 3] += elemcountlist[i, k]
-    # indexelement = np.flip(np.argsort(elemcountlist[:, 3]))[0:elementstoprint]
-    # print("Elements choosen by AL")
-    # for i in range(elementstoprint):  # print elements
-    #     print(i, elements[indexelement(i)][0])
-    # n, bins, _ = plt.hist(elemcountlist[:, 3], 100)
-    # plt.show()
-    y_pos = np.arange(len(elementlabel)+2)
-    plt.bar(y_pos, elemcountlist[:, 3], align='center', alpha=0.5)
+    # write mae of elements to csv file for PSE generation
+    with open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + '/ElementMAE.csv', 'w', newline='') as csvfile:
+        element_writer = csv.writer(csvfile, delimiter=',')  # , quotechar='|', qouting=csv.QOUTE_MINIMAL)
+        # print("CSV:")
+        # print(elementlabel, len(elementlabel))
+        # print(elemMAE[:, 0], elemMAE[1:, 0], elemMAE.shape)
+        for i in range(highest_element):
+            element_writer.writerow([elementlabel[i], elemMAE[i+1, 0]])
+
+
+    # Elementcount AL
+    y_pos = np.arange(highest_element)
+    # print(y_pos.shape, elementcount.shape, elementlabel)
+    plt.bar(y_pos, elementcount[1:highest_element + 1], align='center', alpha=0.5)
     plt.xticks(y_pos, elementlabel)
     plt.ylabel('Count of Compounds')
     plt.title('Elements chosen by AL')
-    plt.savefig(log + "/" + name + "/" + model_checkpoint + str(NN_index) + "/al_" + str(al_level) + "/elem_in_addtrain.png")
+    plt.savefig(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/elem_in_addtrain.png")
     plt.show()
 
-    val_data = np.delete(val_data, index, axis=0)
-    np.save(open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/valdata.npy", 'wb'), new_train_data, allow_pickle=True)
+
+    # write count of elements to csv file for PSE generation
+    with open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + '/Elementcount.csv', 'w', newline='') as csvfile:
+        element_writer = csv.writer(csvfile, delimiter=',')  # , quotechar='|', qouting=csv.QOUTE_MINIMAL)
+        # print("CSV:")
+        # print(elementlabel, len(elementlabel))
+        # print(elementcount[:], elementcount[0], elementcount.shape)
+        for i in range(highest_element):
+            element_writer.writerow([elementlabel[i], elementcount[i+1]])
 
 
+    # All new data
+    if al_level > 0:
+        elemcountlist = np.zeros((len(elements) + 1, elemincompound + 1))
+        for i in range(1, len(elements)):
+            # number, group, row = elements[i]
+            element_i = elements[i]
+            number, group, row = element_i[1:4]
+            for j in range(len(all_new_data)):
+                for k in range(elemincompound):  # count of elements in compound
+                    if all_new_data[j, k] == i:
+                        elemcountlist[i, k] += 1
+                        elemcountlist[i, 3] += 1
 
-# al_steps = 30
-# NN_number = 10
-# trainsetsize = 5000
-# trainsetaddition = 500
-# model_checkpoint = 'NN_'  # name
-# name = "NN_AL" + str(al_steps) + "a" + str(trainsetaddition) + "_start" + str(trainsetsize)  # or CNN ?
-# log = 'active'
-# new_data = []
-# new_train_data = []
-# for i in range(al_steps):
-#     if i == 0:
-#         new_train_data = np.load(open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(i) + "/" + "new_data.npy", 'rb'))
-#     else:
-#         print("Step:", i)
-#         # add_train_data(trainsetaddition, NN_number, log, i, name)
-#         new_data = np.load(open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(i) + "/" + "new_data.npy", 'rb'))
-#         new_train_data = np.vstack((new_train_data, new_data))
-# np.save(open(log + "/" + name + "/all_new_data.npy", 'wb'), new_train_data, allow_pickle=True)
-# print(new_train_data.shape)
-#
-# elemincompound = 3
-# elements = generateElementdict()
-# elementlabel = []
-# elemcountlist = np.zeros((len(elements) + 1, elemincompound + 1))
-# for i in range(1, len(elements)):
-#     number, group, row = elements[i]
-#     elementlabel.append(elements[i][0])
-#     for j in range(len(new_train_data)):
-#         for k in range(elemincompound):  # count of elements in compound
-#             if new_train_data[j, k] == i:
-#                 elemcountlist[i, k] += 1
-#                 elemcountlist[i, 3] += elemcountlist[i, k]
-# y_pos = np.arange(len(elementlabel)+2)
-# print(y_pos.shape, len(elementlabel))
-# plt.bar(y_pos, elemcountlist[:, 3], align='center', alpha=0.5)
-# plt.xticks(y_pos, elementlabel)
-# plt.ylabel('Count of Compounds')
-# plt.title('All Elements chosen by AL')
-# plt.savefig(log + "/" + name + "/all_elem_in_addtrain.png")
-# plt.show()
+        y_pos = np.arange(highest_element)  # np.arange(len(elementlabel) + 2)
+        print(y_pos.shape, len(elementlabel))
+        plt.bar(y_pos, elemcountlist[1:highest_element + 1, 3], align='center', alpha=0.5)
+        plt.xticks(y_pos, elementlabel[:highest_element])
+        plt.ylabel('Count of Compounds')
+        plt.title('All Elements chosen by AL')
+        plt.savefig(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/all_elem_in_addtrain.png")
+        plt.show()
+
+        # write count all of elements to csv file for PSE generation
+        with open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + '/Elementcount_All_AL.csv', 'w', newline='') as csvfile:
+            element_writer = csv.writer(csvfile, delimiter=',')  # , quotechar='|', qouting=csv.QOUTE_MINIMAL)
+            print("CSV:")
+            print(elementlabel, len(elementlabel))
+            print(elementcount[:], elementcount[0], elementcount.shape)
+            for i in range(highest_element):
+                element_writer.writerow([elementlabel[i], elemcountlist[1:: + 1, 3]])
 
 
+name = 'CNN_AL15a1000_start5000_not_random_max100'
+log = 'active'
+al_steps = 15
+NN_number = 10
+trainsetsize = 5000
+trainsetaddition = 500
 
+for al_level in range(al_steps):
+    rerun_add_train_data(trainsetaddition, NN_number, log, al_level, name)  # name as location of files
+print("END")

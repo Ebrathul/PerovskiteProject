@@ -4,16 +4,16 @@ from add_train_data import add_train_data
 import numpy as np
 import shutil
 
-al_steps = 15
+al_steps = 20
 NN_number = 10
-trainsetsize = 5000
+trainsetsize = 1000
 trainsetaddition = 1000
-max_per_element = 200
-fill_random = False
+max_per_element = 100
+fill_random = True
 if fill_random:
     random_str = "True"
 else:
-    ramdom_str = "False"
+    random_str = "False"
 model_checkpoint = 'NN_'  # name
 log = 'active'
 name = log + "/NN_AL" + str(al_steps) + "a" + str(trainsetaddition) + "_start" + str(trainsetsize)

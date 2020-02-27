@@ -280,26 +280,26 @@ def predict_MAE(NN_number, val_data, val_data_x, stnddev, mean, model, model_che
             print("NN: ", NN_index, "loaded")
             checkpoint = torch.load(model_checkpoint + str(NN_index) + '.pt')
             model.load_state_dict(checkpoint['model_state_dict'])
-
-            splitsize = 10000
-            endintervall = 0
-            while endintervall < len(val_data_x):
-                beginintervall = endintervall
-                endintervall += splitsize
-                if endintervall >= len(val_data_x):
-                    endintervall = len(val_data_x)
-                val_data_x_slice = val_data_x[beginintervall:endintervall]
-                # print("begin and end", beginintervall, endintervall)
-                # print("val data slice shape and ex:", val_data_x_slice.shape, len(val_data_x_slice), val_data_x[0])
-                predictions[NN_index, beginintervall:endintervall] = model(torch.tensor(val_data_x_slice)).detach().cpu().numpy().reshape(len(val_data_x_slice), )
-            # predictions[NN_index] = model(torch.tensor(val_data_x)).detach().cpu().numpy().reshape(len(val_data_x),)  # for all at once
         else:
             print('model not available')
+
+        splitsize = 10000
+        endintervall = 0
+        while endintervall < len(val_data_x):
+            beginintervall = endintervall
+            endintervall += splitsize
+            if endintervall >= len(val_data_x):
+                endintervall = len(val_data_x)
+            val_data_x_slice = val_data_x[beginintervall:endintervall]
+            # print("begin and end", beginintervall, endintervall)
+            # print("val data slice shape and ex:", val_data_x_slice.shape, len(val_data_x_slice), val_data_x[0])
+            predictions[NN_index, beginintervall:endintervall] = model(torch.tensor(val_data_x_slice)).detach().cpu().numpy().reshape(len(val_data_x_slice), )
+            # predictions[NN_index] = model(torch.tensor(val_data_x)).detach().cpu().numpy().reshape(len(val_data_x),)  # for all at once
 
         mae = np.zeros(len(val_data_x))
         mae_predicted = np.zeros(len(val_data_x))
         for i in range(NN_number):
-            # print("Val_data", val_data[i, 0], val_data[:, 0], val_data.shape)
+            print("Val_data", val_data[i, 0], val_data[:, 0], val_data.shape)
             mae_predicted += np.abs((predictions[i, :] * stnddev[0] + mean[0]))
             mae += np.abs((predictions[i, :] * stnddev[0] + mean[0]) - val_data[:, 0])  # z normalization --> prediction - exact
             mae_predicted = mae_predicted / NN_number
@@ -372,33 +372,38 @@ def get_new_data_bounderies(val_data, elements, trainsetaddition, elemincompound
 
 def save_newdata_firstdata(train_data, new_train_data, al_level, logcount, log, elements, elemincompound, elementlabel, model_checkpoint):
     if al_level != 0:
-        if os.path.isfile(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level-1) + '/all_new_data.npy'):
+        if os.path.isfile(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level-1) + '/all_new_data.npy'):  # broke wrong model_checkpoint
             all_new_data = np.load(open(log + "/run_" + str(logcount - 1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level-1) + "/" + "all_new_data.npy", 'rb'))
             all_new_data = np.vstack((new_train_data, all_new_data))
-    else:
-        print("AL_level", al_level)
-        first_train_data = train_data.copy()
-        all_new_data = new_train_data
+            return all_new_data
+        elif os.path.isfile(log + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/" + "all_new_data.npy"):
+            all_new_data = np.load(open(log + "/" + model_checkpoint + str(0) + "/al_" + str(al_level-1) + "/" + "all_new_data.npy", 'rb'))
+            all_new_data = np.vstack((new_train_data, all_new_data))
+            return all_new_data
+    print("AL_level", al_level)
+    first_train_data = train_data.copy()
+    all_new_data = new_train_data
 
-        # plot first random set
-        elemcountlist = np.zeros((len(elements) + 1, elemincompound + 1))
-        for i in range(1, len(elements)):
-            element_i = elements[i]
-            number, group, row = element_i[1:4]
-            for j in range(len(first_train_data)):
-                for k in range(elemincompound):  # count of elements in compound
-                    if first_train_data[j, k] == i:
-                        elemcountlist[i, k] += 1
-                        elemcountlist[i, 3] += 1
-        # y_pos = np.arange(len(elementlabel) + 2)
-        y_pos = np.arange(83)
-        print(y_pos.shape, len(elementlabel))
-        plt.bar(y_pos, elemcountlist[1:84, 3], align='center', alpha=0.5)
-        plt.xticks(y_pos, elementlabel[:83])
-        plt.ylabel('Count of Compounds')
-        plt.title('First Random Traindata')
-        plt.savefig(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/first_random_traindata.png")
-        plt.show()
+    # plot first random set
+    elemcountlist = np.zeros((len(elements) + 1, elemincompound + 1))
+    for i in range(1, len(elements)):
+        element_i = elements[i]
+        number, group, row = element_i[1:4]
+        for j in range(len(first_train_data)):
+            for k in range(elemincompound):  # count of elements in compound
+                if first_train_data[j, k] == i:
+                    elemcountlist[i, k] += 1
+                    elemcountlist[i, 3] += 1
+    # y_pos = np.arange(len(elementlabel) + 2)
+    y_pos = np.arange(83)
+    print(y_pos.shape, len(elementlabel))
+    plt.bar(y_pos, elemcountlist[1:84, 3], align='center', alpha=0.5)
+    plt.xticks(y_pos, elementlabel[:83])
+    plt.ylabel('Count of Compounds')
+    plt.title('First Random Traindata')
+    plt.savefig(log + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/first_random_traindata.png")
+    plt.show()
+    np.save(open(log + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/all_new_data.npy", 'wb'), all_new_data, allow_pickle=True)
     return all_new_data
 
 
@@ -428,9 +433,9 @@ def get_mae_per_elem(mae, val_data, val_data_x):
         if elemMAE[i, 1] != 0:
             elemMAE[i, 0] = elemMAE[i, 0] / elemMAE[i, 1]
             elemMAE[i, 1] = i
-            # print(elements[i][0], elemMAE[i, 0], elemMAE[i, 1])  # H 144.04924302106176 1.0
+            print(elements[i][0], elemMAE[i, 0], elemMAE[i, 1])  # H 144.04924302106176 1.0
         else:
-            # print(elements[i][0], "division by zero")
+            print(elements[i][0], "division by zero")
             elemMAE[i, 0] = 0
     return elemMAE
 
