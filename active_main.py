@@ -41,7 +41,7 @@ if os.path.isfile('traindata.npy'):
 # Active learning train loop
 for i in range(al_steps):
     for j in range(NN_number):
-        if i == 10:
+        if i == 0:
             train(j, trainsetsize, log, 1000)
         else:
             train(j, trainsetsize, log, 500)  #  - (10*i))  # max_epoch reduced in each al step sqrt to reduce?
