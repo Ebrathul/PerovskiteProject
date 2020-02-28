@@ -326,61 +326,92 @@ def predict_MAE(NN_number, val_data, val_data_x, stnddev, mean, model, al_level,
 def get_new_data_bounderies(val_data, elements, trainsetaddition, elemincompound, index, element_cap, fill_random):
     # loop for generating new data AND
     # loop for finding witch materials are chosen
-    new_train_data = []
-    new_index = []
-    index_counter = 0
-    materials_skipped = 0
-    random_on_next_run = fill_random
     print("len of elements", len(elements), "max per element", element_cap)
-    while len(new_train_data) < trainsetaddition:
-        if random_on_next_run:
-            current_index = np.random.randint(index_counter, len(index))
-            print("Random addition on cap", current_index)
-            random_on_next_run = False
-        else:
-            current_index = index[index_counter]
-        current_data = new_train_data.copy()
-        current_data.append(val_data[current_index])
-        current_data_array = np.asarray(current_data)
-        # print("val_data[index[index_counter]]", len(val_data[index[index_counter]]), index[index_counter], index_counter)
+    new_train_data = []
+    new_index =[]
+    current_index = 0
+    elem_dict = {}
 
-        # print("start count loop", len(new_train_data), len(current_data), index_counter)
-        # loop for finding witch materials are chosen
-        elemcountlist = np.zeros((len(elements) + 1, elemincompound + 1))
-        for i in range(1, len(elements)):
-            # print("Element", i, elemcountlist.shape, len(new_train_data), index_counter)
-            for j in range(len(current_data)):  # count of compounds
-                for k in range(elemincompound):  # count of elements in compound
-                    if current_data_array[j, k + 1] == i:  # + 1 or not???????????????
-                        # print(current_data_array[j, :4])
-                        elemcountlist[i, k] += 1
-                        elemcountlist[i, 3] += 1
-                        if i == 2:
-                            print("should this be: ", current_data_array[j, k])
-                            print("Helium, i, j, k, :", i, j, k)
-                            print("compound ABC3", current_data_array[j, 0], current_data_array[j, 1], current_data_array[j, 2], current_data_array[j, 3],
-                                  val_data.shape)
-                            print("elemMAE value & count:", elemcountlist[i, k], elemcountlist[i, 3])
-            if elemcountlist[i, 3] >= element_cap:
-                # print("material not appended, break", i, elemcountlist[i, 3], index_counter, )
-                # print("new traindata", len(new_train_data), len(new_index), index_counter)
-                index_counter += 1
-                materials_skipped += 1
-                if fill_random:
-                    random_on_next_run = True
-                    index_counter -= 1
-                break
-            # last step
-            if elemcountlist[len(elements)-1, 3] < element_cap and i == len(elements)-1:
-                # print("material appended")
-                new_train_data.append(val_data[current_index])
-                new_index.append(current_index)
-                index_counter += 1
-    new_train_data = np.asarray(new_train_data)
-    new_index = np.asarray(new_index)
-    print("new_train_data", new_train_data.shape, new_index.shape, index_counter)
-    print("materials skipped", materials_skipped)
-    return new_train_data, np.asarray(elemcountlist[:, 3]), new_index
+    while len(new_train_data) < trainsetaddition:
+        new_point = val_data[index[current_index]]
+
+        for elements in new_point[1:4]:
+            try:
+                elem_dict[str(elements)] += 1
+            except:
+                elem_dict[str(elements)] = 1
+
+        check_if_too_many = True
+        for key in elem_dict:
+            if(elem_dict[key]>element_cap):
+                check_if_too_many = False
+        if(check_if_too_many):
+            new_train_data.append(new_point)
+            new_index.append(current_index)
+        else:
+            for elements in new_point[1:4]:
+                print('removing',elements)
+                elem_dict[str(elements)] += -1
+
+        current_index += 1
+    element_count = np.zeros((84,))
+    for key in elem_dict:
+        element_count[int(float(key))]=elem_dict[key]
+    element_count = np.asarray(element_count)
+    print(element_count)
+    print('elemendict',elem_dict)
+    return np.asarray(new_train_data),  element_count, new_index,
+    #
+    #     # sum = 0
+    #     # counter = 0
+    #     # count_list = np.zeros((84, 1))
+    #     # for key in elem_dict:
+    #     #     count_list[int(float(key))] = np.mean(elem_dict[key])
+    #     #     for el in elem_dict[key]:
+    #     #         counter += 1
+    #     #         sum += el
+    #     #         count_list[key] = counter
+    #     # print(sum / counter, counter)
+    #
+    #
+    #     elemcountlist = np.zeros((len(elements) + 1, elemincompound + 1))
+    #     for i in range(1, len(elements)):
+    #         # print("Element", i, elemcountlist.shape, len(new_train_data), index_counter)
+    #         for j in range(len(current_data)):  # count of compounds
+    #             for k in range(elemincompound):  # count of elements in compound
+    #                 if current_data_array[j, k + 1] == i:  # + 1 or not???????????????
+    #                     # print(current_data_array[j, :4])
+    #                     elemcountlist[i, k] += 1
+    #                     elemcountlist[i, 3] += 1
+    #                     if i == 2:
+    #                         print("should this be: ", current_data_array[j, k])
+    #                         print("Helium, i, j, k, :", i, j, k)
+    #                         print("compound ABC3", current_data_array[j, 0], current_data_array[j, 1], current_data_array[j, 2], current_data_array[j, 3],
+    #                               val_data.shape)
+    #                         print("elemMAE value & count:", elemcountlist[i, k], elemcountlist[i, 3])
+    #         if elemcountlist[i, 3] >= element_cap:
+    #             # print("material not appended, break", i, elemcountlist[i, 3], index_counter, )
+    #             # print("new traindata", len(new_train_data), len(new_index), index_counter)
+    #             index_counter += 1
+    #             materials_skipped += 1
+    #             if fill_random:
+    #                 random_on_next_run = True
+    #                 index_counter -= 1
+    #             break
+    #         # last step
+    #         if elemcountlist[len(elements)-1, 3] < element_cap and i == len(elements)-1:
+    #             # print("material appended")
+    #             new_train_data.append(val_data[current_index])
+    #             new_index.append(current_index)
+    #             index_counter += 1
+    # new_train_data = np.asarray(new_train_data)
+    # new_index = np.asarray(new_index)
+    # print("new_train_data", new_train_data.shape, new_index.shape, index_counter)
+    # print("materials skipped", materials_skipped)
+    # print("countlist", np.asarray(elemcountlist[:, 3]), np.asarray(elemcountlist[:, 3]).shape)
+    # # print(count_list, count_list.shape)
+    # print(np.sum(np.asarray(elemcountlist[:, 3])))
+    # return new_train_data, np.asarray(elemcountlist[:, 3]), new_index
 
 
 def save_newdata_firstdata(train_data, new_train_data, al_level, logcount, log, elements, elemincompound, elementlabel, model_checkpoint):
@@ -428,15 +459,15 @@ def get_mae_per_e(mae, val_data):
             try:
                 elem_dict[str(elements)].append(mae[i])
             except:
-                elem_dict[str(elements)]=[mae[i]]
+                elem_dict[str(elements)] = [mae[i]]
     sum = 0
     counter = 0
     mae_list = np.zeros((84,1))
     for key in elem_dict:
         mae_list[int(float(key))] = np.mean(elem_dict[key])
         for el in elem_dict[key]:
-            counter+=1
-            sum+=el
+            counter += 1
+            sum += el
     print(sum/counter, counter)
     return mae_list
 

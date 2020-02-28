@@ -5,7 +5,7 @@ import numpy as np
 import shutil
 
 al_steps = 30
-NN_number = 10
+NN_number = 2
 trainsetsize = 5000
 trainsetaddition = 500
 max_per_element = 70
@@ -42,7 +42,7 @@ if os.path.isfile('traindata.npy'):
 for i in range(al_steps):
     for j in range(NN_number):
         if i == 0:
-            train(j, trainsetsize, log, 1000)
+            train(j, trainsetsize, log, 10)
         else:
             train(j, trainsetsize, log, 500)  #  - (10*i))  # max_epoch reduced in each al step sqrt to reduce?
     add_train_data(trainsetaddition, NN_number, log, i, max_per_element, fill_random)

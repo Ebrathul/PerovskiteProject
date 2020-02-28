@@ -99,7 +99,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
     # Elements MAE
     # y_pos = np.arange(len(elementlabel)+2)
     y_pos = np.arange(highest_element)
-    plt.bar(elemMAE[1:highest_element + 1, 1], elemMAE[1:highest_element + 1, 0], align='center', alpha=0.5)
+    plt.bar(np.arange(1,84), elemMAE[1:highest_element + 1, 0], align='center', alpha=0.5)
     plt.xticks(y_pos, elementlabel[:83])
     plt.ylabel('Elements MAE meV')
     plt.title('Elements MAE')
@@ -120,7 +120,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
     # Elementcount AL
     y_pos = np.arange(highest_element)
     # print(y_pos.shape, elementcount.shape, elementlabel)
-    plt.bar(y_pos, elementcount[1:highest_element + 1], align='center', alpha=0.5)
+    plt.bar(y_pos, elementcount[0:highest_element], align='center', alpha=0.5)
     plt.xticks(y_pos, elementlabel)
     plt.ylabel('Count of Compounds')
     plt.title('Elements chosen by AL')
@@ -154,6 +154,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
 
         y_pos = np.arange(highest_element)  # np.arange(len(elementlabel) + 2)
         print(y_pos.shape, len(elementlabel))
+        print('allo',elementcount)
         plt.bar(y_pos, elemcountlist[1:highest_element + 1, 3], align='center', alpha=0.5)
         plt.xticks(y_pos, elementlabel[:highest_element])
         plt.ylabel('Count of Compounds')
