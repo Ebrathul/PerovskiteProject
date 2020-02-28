@@ -44,18 +44,18 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
     # load data
     train_data = np.load(open('traindata.npy', 'rb'))
     val_data = np.load(open('valdata.npy', 'rb'))
-    print("val data shape and ex:", val_data.shape, val_data[0])
+    # print("val data shape and ex:", val_data.shape, val_data[0])
 
     mean, stnddev = get_mean_stndev(train_data)
 
     # normalization
     val_data_x = (val_data[:, 1::] - mean[1::]) / stnddev[1::]
-    print("val data_x shape and ex:", val_data_x.shape, val_data_x[0])
+    # print("val data_x shape and ex:", val_data_x.shape, val_data_x[0])
 
     # for CNN
     size = val_data_x.shape
     val_data_x = val_data_x.reshape((size[0], 1, size[1]))
-    print("val data x shape and ex:", val_data_x.shape, val_data_x[0])
+    # print("val data x shape and ex:", val_data_x.shape, val_data_x[0])
 
 
     # netvariabeles

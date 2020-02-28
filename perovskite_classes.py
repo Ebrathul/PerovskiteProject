@@ -311,7 +311,7 @@ def predict_MAE(NN_number, val_data, val_data_x, stnddev, mean, model, al_level,
     for i in range(NN_number):
         energy += (predictions[i, :] * stnddev[0] + mean[0])
         mae += np.abs((predictions[i, :] * stnddev[0] + mean[0]) - val_data[:, 0])  # z normalization --> prediction - exact
-        print("Val_data", val_data[i, 0], val_data[:, 0], val_data.shape, mae[i])
+        # print("Val_data", val_data[i, 0], val_data[:, 0], val_data.shape, mae[i])
     energy = energy / NN_number
     # print(mae.shape, NN_number)
     print(np.mean(mae))
@@ -350,7 +350,7 @@ def get_new_data_bounderies(val_data, elements, trainsetaddition, elemincompound
             new_index.append(current_index)
         else:
             for elements in new_point[1:4]:
-                print('removing',elements)
+                # print('removing',elements)
                 elem_dict[str(elements)] += -1
 
         current_index += 1
@@ -358,8 +358,8 @@ def get_new_data_bounderies(val_data, elements, trainsetaddition, elemincompound
     for key in elem_dict:
         element_count[int(float(key))]=elem_dict[key]
     element_count = np.asarray(element_count)
-    print(element_count)
-    print('elemendict',elem_dict)
+    # print(element_count)
+    # print('elemendict',elem_dict)
     return np.asarray(new_train_data),  element_count, new_index,
     #
     #     # sum = 0
@@ -498,8 +498,8 @@ def get_mae_per_elem(mae, val_data, val_data_x):
                         print("compound ABC3", val_data[j, 0], val_data[j, 1], val_data[j, 2], val_data[j, 3], val_data.shape)
                         print("elemMAE value & count:", elemMAE[i, 0], elemMAE[i, 1])
 
-    print('first sum', np.sum(elemMAE[:, 0]/len(val_data) / 3.0))
-    print('first sum', np.sum(elemMAE[:, 0]/np.sum(elemMAE[:,1])))
+    # print('first sum', np.sum(elemMAE[:, 0]/len(val_data) / 3.0))
+    # print('first sum', np.sum(elemMAE[:, 0]/np.sum(elemMAE[:,1])))
     for i in range(1, len(elements)):
         if elemMAE[i, 1] != 0:
             elemMAE[i, 0] = elemMAE[i, 0] / elemMAE[i, 1]
@@ -510,7 +510,7 @@ def get_mae_per_elem(mae, val_data, val_data_x):
             print(elements[i][0], "division by zero")
             elemMAE[i, 0] = 0
             elemMAE[i][1] = i
-    print('second sum', np.sum(elemMAE[:, 0]*elemMAE[:, 1])/len(val_data)/3)
+    # print('second sum', np.sum(elemMAE[:, 0]*elemMAE[:, 1])/len(val_data)/3)
     return elemMAE
 
 
