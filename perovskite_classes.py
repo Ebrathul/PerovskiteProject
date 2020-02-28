@@ -271,19 +271,22 @@ def rawdataprocessing(elementdict, featperelem, datavariables, feattotal, file):
     return newdata
 
 
-def predict_MAE(NN_number, val_data, val_data_x, stnddev, mean, model, model_checkpoint):
+def predict_MAE(NN_number, val_data, val_data_x, stnddev, mean, model, al_level, model_checkpoint):
     # prediction of ensemble
     print("Calculate MAE")
     predictions = np.zeros((NN_number, len(val_data)))
     for NN_index in range(NN_number):
-        if os.path.isfile(model_checkpoint + str(NN_index) + '.pt'):
+        if os.path.isfile(model_checkpoint + str(NN_index) + "/al_" + str(al_level) + '/NN_' + str(NN_index) + '.pt'):
             print("NN: ", NN_index, "loaded")
-            checkpoint = torch.load(model_checkpoint + str(NN_index) + '.pt')
+            checkpoint = torch.load(model_checkpoint + str(NN_index) + "/al_" + str(al_level) + '/NN_' + str(NN_index) + '.pt')
             model.load_state_dict(checkpoint['model_state_dict'])
         else:
             print('model not available')
-
+        # for i, el in enumerate(model.parameters()):  # model is loaded properly
+        #     if (i == 0):
+        #         print("el:", el[0][0])
         splitsize = 10000
+        model.eval()
         endintervall = 0
         while endintervall < len(val_data_x):
             beginintervall = endintervall
@@ -292,23 +295,32 @@ def predict_MAE(NN_number, val_data, val_data_x, stnddev, mean, model, model_che
                 endintervall = len(val_data_x)
             val_data_x_slice = val_data_x[beginintervall:endintervall]
             # print("begin and end", beginintervall, endintervall)
-            # print("val data slice shape and ex:", val_data_x_slice.shape, len(val_data_x_slice), val_data_x[0])
-            predictions[NN_index, beginintervall:endintervall] = model(torch.tensor(val_data_x_slice)).detach().cpu().numpy().reshape(len(val_data_x_slice), )
+            # print("val data ", val_data_x)
+            try:
+                predictions[NN_index, beginintervall:endintervall] = model(
+                    torch.tensor(val_data_x_slice)).detach().cpu().numpy().reshape(len(val_data_x_slice), )
+            except:
+                predictions[NN_index, beginintervall:endintervall] = model(
+                    torch.tensor(val_data_x_slice).float()).detach().cpu().numpy().reshape(len(val_data_x_slice), )
             # predictions[NN_index] = model(torch.tensor(val_data_x)).detach().cpu().numpy().reshape(len(val_data_x),)  # for all at once
+            # print("predictions", predictions)
+    mae = np.zeros(len(val_data_x))
+    energy = np.zeros(len(val_data_x))
+    # print('mean energy val data, prediction', np.mean(val_data[:, 0]), np.mean(predictions))
+    # mae = np.mean((predictions*stnddev[0]+mean[0]-val_data[:,0]), axis=)
+    for i in range(NN_number):
+        energy += (predictions[i, :] * stnddev[0] + mean[0])
+        mae += np.abs((predictions[i, :] * stnddev[0] + mean[0]) - val_data[:, 0])  # z normalization --> prediction - exact
+        print("Val_data", val_data[i, 0], val_data[:, 0], val_data.shape, mae[i])
+    energy = energy / NN_number
+    # print(mae.shape, NN_number)
+    print(np.mean(mae))
+    mae = mae / NN_number
+    print(np.mean(mae))
+    std_p = np.std(predictions, axis=0)
 
-        mae = np.zeros(len(val_data_x))
-        mae_predicted = np.zeros(len(val_data_x))
-        for i in range(NN_number):
-            print("Val_data", val_data[i, 0], val_data[:, 0], val_data.shape)
-            mae_predicted += np.abs((predictions[i, :] * stnddev[0] + mean[0]))
-            mae += np.abs((predictions[i, :] * stnddev[0] + mean[0]) - val_data[:, 0])  # z normalization --> prediction - exact
-            mae_predicted = mae_predicted / NN_number
-            mae = mae / NN_number
-
-        std_p = np.std(predictions, axis=0)
-
-        index = np.asarray(np.flip(np.argsort(std_p))[0:len(val_data_x)])
-        return mae, mae_predicted, index
+    index = np.asarray(np.flip(np.argsort(std_p))[0:len(val_data_x)])
+    return mae, energy, index
 
 
 def get_new_data_bounderies(val_data, elements, trainsetaddition, elemincompound, index, element_cap, fill_random):
@@ -339,7 +351,8 @@ def get_new_data_bounderies(val_data, elements, trainsetaddition, elemincompound
             # print("Element", i, elemcountlist.shape, len(new_train_data), index_counter)
             for j in range(len(current_data)):  # count of compounds
                 for k in range(elemincompound):  # count of elements in compound
-                    if current_data_array[j, k] == i:
+                    if current_data_array[j, k + 1] == i:  # + 1 or not???????????????
+                        # print(current_data_array[j, :4])
                         elemcountlist[i, k] += 1
                         elemcountlist[i, 3] += 1
                         if i == 2:
@@ -349,8 +362,8 @@ def get_new_data_bounderies(val_data, elements, trainsetaddition, elemincompound
                                   val_data.shape)
                             print("elemMAE value & count:", elemcountlist[i, k], elemcountlist[i, 3])
             if elemcountlist[i, 3] >= element_cap:
-                print("material not appended, break", i, elemcountlist[i, 3], index_counter, )
-                print("new traindata", len(new_train_data), len(new_index), index_counter)
+                # print("material not appended, break", i, elemcountlist[i, 3], index_counter, )
+                # print("new traindata", len(new_train_data), len(new_index), index_counter)
                 index_counter += 1
                 materials_skipped += 1
                 if fill_random:
@@ -407,8 +420,31 @@ def save_newdata_firstdata(train_data, new_train_data, al_level, logcount, log, 
     return all_new_data
 
 
+def get_mae_per_e(mae, val_data):
+    elem_dict = {}
+    print(3*len(val_data))
+    for i, el in enumerate(val_data):
+        for elements in el[1:4]:
+            try:
+                elem_dict[str(elements)].append(mae[i])
+            except:
+                elem_dict[str(elements)]=[mae[i]]
+    sum = 0
+    counter = 0
+    mae_list = np.zeros((84,1))
+    for key in elem_dict:
+        mae_list[int(float(key))] = np.mean(elem_dict[key])
+        for el in elem_dict[key]:
+            counter+=1
+            sum+=el
+    print(sum/counter, counter)
+    return mae_list
+
+
+
 def get_mae_per_elem(mae, val_data, val_data_x):
     # loop for finding mean MAE one elements
+    print(np.mean(mae))
     elemincompound = 3
     elements = generateElementdict()
     elementlabel = []
@@ -430,13 +466,20 @@ def get_mae_per_elem(mae, val_data, val_data_x):
                         print("Helium, i, j, k, :", i, j, k)
                         print("compound ABC3", val_data[j, 0], val_data[j, 1], val_data[j, 2], val_data[j, 3], val_data.shape)
                         print("elemMAE value & count:", elemMAE[i, 0], elemMAE[i, 1])
+
+    print('first sum', np.sum(elemMAE[:, 0]/len(val_data) / 3.0))
+    print('first sum', np.sum(elemMAE[:, 0]/np.sum(elemMAE[:,1])))
+    for i in range(1, len(elements)):
         if elemMAE[i, 1] != 0:
             elemMAE[i, 0] = elemMAE[i, 0] / elemMAE[i, 1]
+            print(elemMAE[i])
             elemMAE[i, 1] = i
             print(elements[i][0], elemMAE[i, 0], elemMAE[i, 1])  # H 144.04924302106176 1.0
         else:
             print(elements[i][0], "division by zero")
             elemMAE[i, 0] = 0
+            elemMAE[i][1] = i
+    print('second sum', np.sum(elemMAE[:, 0]*elemMAE[:, 1])/len(val_data)/3)
     return elemMAE
 
 

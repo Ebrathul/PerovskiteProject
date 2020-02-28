@@ -17,7 +17,7 @@ from perovskite_classes import flatten, wrapped, create_dataset, generateElement
 from perovskite_classes import prepare_batch_conv as prepare_batch  # _conv
 from perovskite_classes import generateData
 from perovskite_classes import get_NN, get_CNN
-from perovskite_classes import predict_MAE, get_new_data_bounderies, save_newdata_firstdata, get_mae_per_elem, find_elements_not_used
+from perovskite_classes import predict_MAE, get_new_data_bounderies, save_newdata_firstdata, get_mae_per_e, find_elements_not_used
 import matplotlib.pyplot as plt
 import csv
 
@@ -55,7 +55,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
     # for CNN
     size = val_data_x.shape
     val_data_x = val_data_x.reshape((size[0], 1, size[1]))
-    print("val data shape and ex:", val_data_x.shape, val_data_x[0])
+    print("val data x shape and ex:", val_data_x.shape, val_data_x[0])
 
 
     # netvariabeles
@@ -65,7 +65,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
     model = get_CNN(feattotal)
 
     # mae and stnd of NNs is calculated
-    mae, mae_predicted, index = predict_MAE(NN_number, val_data, val_data_x, stnddev, mean, model, model_checkpoint)
+    mae, energy, index = predict_MAE(NN_number, val_data, val_data_x, stnddev, mean, model, al_level, log + "/run_" + str(logcount - 1) + "/" + model_checkpoint)
 
     # find new data and witch materials are chosen and count
     new_train_data, elementcount, new_index = get_new_data_bounderies(val_data, elements, trainsetaddition, elemincompound, index, element_cap, fill_random)
@@ -74,7 +74,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
     all_new_data = save_newdata_firstdata(train_data, new_train_data, al_level, logcount, log, elements, elemincompound, elementlabel, "/run_" + str(logcount-1) + '/' + model_checkpoint)
 
     # mae per elem
-    elemMAE = get_mae_per_elem(mae, val_data, val_data_x)
+    elemMAE = get_mae_per_e(mae, val_data, val_data_x)
     # elemMAE_predicted = get_mae_per_elem(mae_predicted, val_data, val_data_x)
 
     elements_not_used = find_elements_not_used(elementcount, elements, elementstoprint)
@@ -110,7 +110,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
     # write mae of elements to csv file for PSE generation
     with open(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + '/ElementMAE.csv', 'w', newline='') as csvfile:
         element_writer = csv.writer(csvfile, delimiter=',')  # , quotechar='|', qouting=csv.QOUTE_MINIMAL)
-        print("CSV:")
+        # print("CSV:")
         # print(elementlabel, len(elementlabel))
         # print(elemMAE[:, 0], elemMAE[1:, 0], elemMAE.shape)
         for i in range(highest_element):
@@ -131,7 +131,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
     # write count of elements to csv file for PSE generation
     with open(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + '/Elementcount.csv', 'w', newline='') as csvfile:
         element_writer = csv.writer(csvfile, delimiter=',')  # , quotechar='|', qouting=csv.QOUTE_MINIMAL)
-        print("CSV:")
+        # print("CSV:")
         # print(elementlabel, len(elementlabel))
         # print(elementcount[:], elementcount[0], elementcount.shape)
         for i in range(highest_element):
@@ -165,7 +165,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
         with open(log + "/run_" + str(logcount - 1) + "/" + model_checkpoint + str(0) + "/al_" + str(
                 al_level) + '/Elementcount_All_AL.csv', 'w', newline='') as csvfile:
             element_writer = csv.writer(csvfile, delimiter=',')  # , quotechar='|', qouting=csv.QOUTE_MINIMAL)
-            print("CSV:")
+            # print("CSV:")
             # print(elementlabel, len(elementlabel))
             # print(elementcount[:], elementcount[0], elementcount.shape)
             for i in range(highest_element):

@@ -4,12 +4,12 @@ from add_train_data import add_train_data
 import numpy as np
 import shutil
 
-al_steps = 20
+al_steps = 30
 NN_number = 10
-trainsetsize = 1000
-trainsetaddition = 1000
-max_per_element = 100
-fill_random = True
+trainsetsize = 5000
+trainsetaddition = 500
+max_per_element = 70
+fill_random = False
 if fill_random:
     random_str = "True"
 else:
@@ -41,7 +41,7 @@ if os.path.isfile('traindata.npy'):
 # Active learning train loop
 for i in range(al_steps):
     for j in range(NN_number):
-        if i == 0:
+        if i == 10:
             train(j, trainsetsize, log, 1000)
         else:
             train(j, trainsetsize, log, 500)  #  - (10*i))  # max_epoch reduced in each al step sqrt to reduce?

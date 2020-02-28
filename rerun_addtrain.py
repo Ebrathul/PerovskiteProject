@@ -27,11 +27,12 @@ from perovskite_classes import flatten, wrapped, create_dataset, generateElement
 from perovskite_classes import prepare_batch_conv as prepare_batch  # _conv
 from perovskite_classes import generateData
 from perovskite_classes import get_NN, get_CNN
-from perovskite_classes import predict_MAE, get_new_data_bounderies, save_newdata_firstdata, get_mae_per_elem, find_elements_not_used
+from perovskite_classes import predict_MAE, get_new_data_bounderies, save_newdata_firstdata, get_mae_per_e, find_elements_not_used
 import matplotlib.pyplot as plt
 import csv
 
-
+# torch.manual_seed(0)
+# np.random.seed(0)
 
 def rerun_add_train_data(trainsetaddition, NN_number, log, al_level, name):  # name as location of files
     print("Rerunning calculation:", name, al_level)
@@ -70,23 +71,26 @@ def rerun_add_train_data(trainsetaddition, NN_number, log, al_level, name):  # n
     data, index = np.unique(data, axis=0, return_counts=True)
     val_data = np.delete(data, np.nonzero(index > 1)[0], axis=0)
 
-    val_data = np.vstack((data, new_train_data))
+    # val_data = val_data[:3, :]
+    # print("All val data", val_data[:, :4], val_data.shape, np.mean(val_data[:, 0]))
+    # val_data = np.vstack((data, new_train_data))
 
     print("nonzero", np.nonzero(index > 1), np.nonzero(index > 1)[0].shape)
     print("Shape of all data", data.shape, train_data.shape, val_data.shape, index.shape, new_train_data.shape, real_train_data.shape)
     # val_data = np.load(open(log + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/" + "valdata.npy", 'rb'))
-    print("val data shape and ex:", val_data.shape, val_data[0])
+    # print("val data shape and ex:", val_data.shape, val_data[0])
 
     mean, stnddev = get_mean_stndev(real_train_data)
+    # print("mean and stnd", mean, stnddev)
 
     # normalization
     val_data_x = (val_data[:, 1::] - mean[1::]) / stnddev[1::]
-    print("val data_x shape and ex:", val_data_x.shape, val_data_x[0])
+    # print("val data_x shape and ex:", val_data_x.shape, val_data_x[0])
 
     # for CNN
     size = val_data_x.shape
     val_data_x = val_data_x.reshape((size[0], 1, size[1]))
-    print("val data_x shape and ex:", val_data_x.shape, val_data_x[0])
+    # print("val data_x shape and ex:", val_data_x.shape, val_data_x[0])
 
     # netvariabeles
     feattotal = int(val_data_x.shape[1])
@@ -94,22 +98,22 @@ def rerun_add_train_data(trainsetaddition, NN_number, log, al_level, name):  # n
     # model = get_NN(feattotal)
     model = get_CNN(feattotal)
 
-    mae, mae_predicted, index = predict_MAE(NN_number, val_data, val_data_x, stnddev, mean, model, (log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + '/' + model_checkpoint))
+    mae, energy, index = predict_MAE(NN_number, val_data, val_data_x, stnddev, mean, model, al_level, (log + "/" + name + "/" + model_checkpoint))
 
-    # find new data and witch materials are chosen
+    # find new data and which materials are chosen
     train_data, elementcount, new_index = get_new_data_bounderies(val_data, elements, trainsetaddition, elemincompound, index, element_cap, fill_random)
 
     # save
 
-    if os.path.isfile(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) +  "/all_new_data.npy" == True):
+    if os.path.isfile(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/all_new_data.npy" == True):
         all_new_data = np.load(open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/all_new_data.npy", 'rb'), allow_pickle=True)
     else:
         all_new_data = save_newdata_firstdata(train_data, new_train_data, al_level, logcount, log, elements, elemincompound, elementlabel, name + "/" + model_checkpoint)
 
     # mae per elem
-    elemMAE = get_mae_per_elem(mae, val_data, val_data_x)
+    elemMAE = get_mae_per_e(mae, val_data)
 
-    elements_not_used = find_elements_not_used(elementcount, elements, elementstoprint)
+    # elements_not_used = find_elements_not_used(elementcount, elements, elementstoprint)
 
     # load train and val data with chosen
     train_data = np.load(open(log + "/" + name + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/traindata.npy", 'rb'), allow_pickle=True)
@@ -127,7 +131,7 @@ def rerun_add_train_data(trainsetaddition, NN_number, log, al_level, name):  # n
     # Elements MAE
     # y_pos = np.arange(len(elementlabel)+2)
     y_pos = np.arange(highest_element)
-    plt.bar(elemMAE[1:highest_element + 1, 1], elemMAE[1:highest_element + 1, 0], align='center', alpha=0.5)
+    plt.bar(np.arange(1, 84), elemMAE[1:highest_element + 1, 0], align='center', alpha=0.5)
     plt.xticks(y_pos, elementlabel[:83])
     plt.ylabel('Elements MAE meV')
     plt.title('Elements MAE')
@@ -198,10 +202,10 @@ def rerun_add_train_data(trainsetaddition, NN_number, log, al_level, name):  # n
                 element_writer.writerow([elementlabel[i], elemcountlist[1:: + 1, 3]])
 
 
-name = 'CNN_AL15a1000_start5000_not_random_max100'
+name = 'CNN_AL30a500_start5000_random'
 log = 'active'
 al_steps = 15
-NN_number = 10
+NN_number = 1
 trainsetsize = 5000
 trainsetaddition = 500
 
