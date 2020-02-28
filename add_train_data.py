@@ -74,7 +74,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
     all_new_data = save_newdata_firstdata(train_data, new_train_data, al_level, logcount, log, elements, elemincompound, elementlabel, "/run_" + str(logcount-1) + '/' + model_checkpoint)
 
     # mae per elem
-    elemMAE = get_mae_per_e(mae, val_data, val_data_x)
+    elemMAE = get_mae_per_e(mae, val_data)
     # elemMAE_predicted = get_mae_per_elem(mae_predicted, val_data, val_data_x)
 
     elements_not_used = find_elements_not_used(elementcount, elements, elementstoprint)
