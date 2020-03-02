@@ -446,7 +446,7 @@ def save_newdata_firstdata(train_data, new_train_data, al_level, logcount, log, 
     plt.ylabel('Count of Compounds')
     plt.title('First Random Traindata')
     plt.savefig(log + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/first_random_traindata.png")
-    plt.show()
+    # plt.show()
     np.save(open(log + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/all_new_data.npy", 'wb'), all_new_data, allow_pickle=True)
     return all_new_data
 

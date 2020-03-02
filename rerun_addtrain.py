@@ -202,7 +202,7 @@ def rerun_add_train_data(trainsetaddition, NN_number, log, al_level, name):  # n
                 element_writer.writerow([elementlabel[i], elemcountlist[1:: + 1, 3]])
 
 
-name = 'CNN_AL30a500_start5000_random'
+name = 'CNN_AL30a500_start5000_a50'
 log = 'active'
 al_steps = 15
 NN_number = 1

@@ -93,18 +93,18 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
     n, bins, _ = plt.hist(new_train_data[:, 0], 100)
     plt.title('Energyhistogram of AL chosen data')
     plt.savefig(log + "/run_" + str(logcount - 1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/energydistr.png")
-    plt.show()
+    # plt.show()
 
 
     # Elements MAE
     # y_pos = np.arange(len(elementlabel)+2)
     y_pos = np.arange(highest_element)
-    plt.bar(np.arange(1,84), elemMAE[1:highest_element + 1, 0], align='center', alpha=0.5)
+    plt.bar(np.arange(1, 84), elemMAE[1:highest_element + 1, 0], align='center', alpha=0.5)
     plt.xticks(y_pos, elementlabel[:83])
     plt.ylabel('Elements MAE meV')
     plt.title('Elements MAE')
     plt.savefig(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/elemMAE.png")
-    plt.show()
+    # plt.show()
 
 
     # write mae of elements to csv file for PSE generation
@@ -125,7 +125,7 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
     plt.ylabel('Count of Compounds')
     plt.title('Elements chosen by AL')
     plt.savefig(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/elem_in_addtrain.png")
-    plt.show()
+    # plt.show()
 
 
     # write count of elements to csv file for PSE generation
@@ -154,13 +154,13 @@ def add_train_data(trainsetaddition, NN_number, log, al_level, element_cap, fill
 
         y_pos = np.arange(highest_element)  # np.arange(len(elementlabel) + 2)
         print(y_pos.shape, len(elementlabel))
-        print('allo',elementcount)
+        print('allo', elementcount)
         plt.bar(y_pos, elemcountlist[1:highest_element + 1, 3], align='center', alpha=0.5)
         plt.xticks(y_pos, elementlabel[:highest_element])
         plt.ylabel('Count of Compounds')
         plt.title('All Elements chosen by AL')
         plt.savefig(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/all_elem_in_addtrain.png")
-        plt.show()
+        # plt.show()
 
         # write count all of elements to csv file for PSE generation
         with open(log + "/run_" + str(logcount - 1) + "/" + model_checkpoint + str(0) + "/al_" + str(
