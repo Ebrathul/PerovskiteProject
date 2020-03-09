@@ -333,6 +333,7 @@ def get_new_data_bounderies(val_data, elements, trainsetaddition, elemincompound
     elem_dict = {}
 
     while len(new_train_data) < trainsetaddition:
+        # print(current_index, len(new_train_data))
         new_point = val_data[index[current_index]]
 
         for elements in new_point[1:4]:
@@ -343,9 +344,9 @@ def get_new_data_bounderies(val_data, elements, trainsetaddition, elemincompound
 
         check_if_too_many = True
         for key in elem_dict:
-            if(elem_dict[key]>element_cap):
+            if elem_dict[key] > element_cap:
                 check_if_too_many = False
-        if(check_if_too_many):
+        if check_if_too_many:
             new_train_data.append(new_point)
             new_index.append(current_index)
         else:
@@ -356,7 +357,7 @@ def get_new_data_bounderies(val_data, elements, trainsetaddition, elemincompound
         current_index += 1
     element_count = np.zeros((84,))
     for key in elem_dict:
-        element_count[int(float(key))]=elem_dict[key]
+        element_count[int(float(key))] = elem_dict[key]
     element_count = np.asarray(element_count)
     # print(element_count)
     # print('elemendict',elem_dict)
@@ -417,12 +418,16 @@ def get_new_data_bounderies(val_data, elements, trainsetaddition, elemincompound
 def save_newdata_firstdata(train_data, new_train_data, al_level, logcount, log, elements, elemincompound, elementlabel, model_checkpoint):
     if al_level != 0:
         if os.path.isfile(log + "/run_" + str(logcount-1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level-1) + '/all_new_data.npy'):  # broke wrong model_checkpoint
+            # print("Dierectory 1")
             all_new_data = np.load(open(log + "/run_" + str(logcount - 1) + "/" + model_checkpoint + str(0) + "/al_" + str(al_level-1) + "/" + "all_new_data.npy", 'rb'))
             all_new_data = np.vstack((new_train_data, all_new_data))
             return all_new_data
         elif os.path.isfile(log + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/" + "all_new_data.npy"):
+            # print("Dierectory 2")
             all_new_data = np.load(open(log + "/" + model_checkpoint + str(0) + "/al_" + str(al_level-1) + "/" + "all_new_data.npy", 'rb'))
+            # print(new_train_data.shape, all_new_data.shape)
             all_new_data = np.vstack((new_train_data, all_new_data))
+            np.save(open(log + "/" + model_checkpoint + str(0) + "/al_" + str(al_level) + "/" + "all_new_data.npy", 'wb'), all_new_data, allow_pickle=True)
             return all_new_data
     print("AL_level", al_level)
     first_train_data = train_data.copy()

@@ -17,7 +17,7 @@ os.mkdir(log + "/run_" + str(logcount) + "/NN_0")
 for i in range(NN_number):
     os.mkdir(log + "/run_" + str(logcount) + "/" + model_checkpoint + str(i))
 
-train(NN_number, trainsetsize, log, 2000)
+train(NN_number, trainsetsize, log, 5000)
 
 # move files to corresponding location
 os.rename("traindata.npy", log + "/run_" + str(logcount) + "/traindata.npy")
@@ -26,7 +26,7 @@ for i in range(NN_number):
     os.rename(model_checkpoint + str(i) + '.pt', log + "/run_" + str(logcount) + "/" + model_checkpoint + str(i) + '.pt')
 
 
-
+# run für CNN_AL30a500_start5000_a50_MAE116.45
 
 
 
